@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -13,6 +13,7 @@
 		F88AA3FC25F1F2190048F68C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F88AA3FB25F1F2190048F68C /* Assets.xcassets */; };
 		F88AA3FF25F1F2190048F68C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F88AA3FE25F1F2190048F68C /* Preview Assets.xcassets */; };
 		F88AA40225F1F2190048F68C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F88AA40025F1F2190048F68C /* LaunchScreen.storyboard */; };
+		F88AA41025F2296B0048F68C /* SwiftyBluetooth in Frameworks */ = {isa = PBXBuildFile; productRef = F88AA40F25F2296B0048F68C /* SwiftyBluetooth */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F88AA41025F2296B0048F68C /* SwiftyBluetooth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -91,6 +93,9 @@
 			dependencies = (
 			);
 			name = "Skymirror Controller";
+			packageProductDependencies = (
+				F88AA40F25F2296B0048F68C /* SwiftyBluetooth */,
+			);
 			productName = "Skymirror Controller";
 			productReference = F88AA3F225F1F2170048F68C /* Skymirror Controller.app */;
 			productType = "com.apple.product-type.application";
@@ -118,6 +123,9 @@
 				Base,
 			);
 			mainGroup = F88AA3E925F1F2170048F68C;
+			packageReferences = (
+				F88AA40E25F2296B0048F68C /* XCRemoteSwiftPackageReference "SwiftyBluetooth" */,
+			);
 			productRefGroup = F88AA3F325F1F2170048F68C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -291,6 +299,7 @@
 				DEVELOPMENT_TEAM = BBESPWLU2A;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = "Skymirror Controller/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -312,6 +321,7 @@
 				DEVELOPMENT_TEAM = BBESPWLU2A;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = "Skymirror Controller/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -345,6 +355,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F88AA40E25F2296B0048F68C /* XCRemoteSwiftPackageReference "SwiftyBluetooth" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jordanebelanger/SwiftyBluetooth.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.2.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F88AA40F25F2296B0048F68C /* SwiftyBluetooth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F88AA40E25F2296B0048F68C /* XCRemoteSwiftPackageReference "SwiftyBluetooth" */;
+			productName = SwiftyBluetooth;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = F88AA3EA25F1F2170048F68C /* Project object */;
 }

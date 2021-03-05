@@ -45,6 +45,10 @@
 	<array>
 		<string>armv7</string>
 	</array>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>App uses bluetooth in order to communicate with Skymirror.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>App uses bluetooth in order to communicate with Skymirror.</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
