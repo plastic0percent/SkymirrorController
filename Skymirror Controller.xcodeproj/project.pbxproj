@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F817A9BE25F3D64C0029BA98 /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = F817A9BD25F3D64C0029BA98 /* SDWebImageSwiftUI */; };
+		F817A9CD25F3DD830029BA98 /* startup.gif in Resources */ = {isa = PBXBuildFile; fileRef = F817A9CC25F3DD830029BA98 /* startup.gif */; };
 		F88AA3F625F1F2170048F68C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88AA3F525F1F2170048F68C /* AppDelegate.swift */; };
 		F88AA3F825F1F2170048F68C /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88AA3F725F1F2170048F68C /* SceneDelegate.swift */; };
 		F88AA3FA25F1F2170048F68C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88AA3F925F1F2170048F68C /* ContentView.swift */; };
@@ -18,6 +20,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		F817A9CC25F3DD830029BA98 /* startup.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = startup.gif; sourceTree = "<group>"; };
 		F88AA3F225F1F2170048F68C /* Skymirror Controller.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Skymirror Controller.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F88AA3F525F1F2170048F68C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F88AA3F725F1F2170048F68C /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -34,6 +37,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F817A9BE25F3D64C0029BA98 /* SDWebImageSwiftUI in Frameworks */,
 				F88AA41025F2296B0048F68C /* SwiftyBluetooth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -67,6 +71,7 @@
 				F88AA40325F1F2190048F68C /* Info.plist */,
 				F88AA3FD25F1F2190048F68C /* Preview Content */,
 				F88AA42525F31D300048F68C /* Connection.swift */,
+				F817A9CC25F3DD830029BA98 /* startup.gif */,
 				F88AA42925F31F120048F68C /* SkymirrorAspects.swift */,
 			);
 			path = "Skymirror Controller";
@@ -98,6 +103,7 @@
 			name = "Skymirror Controller";
 			packageProductDependencies = (
 				F88AA40F25F2296B0048F68C /* SwiftyBluetooth */,
+				F817A9BD25F3D64C0029BA98 /* SDWebImageSwiftUI */,
 			);
 			productName = "Skymirror Controller";
 			productReference = F88AA3F225F1F2170048F68C /* Skymirror Controller.app */;
@@ -128,6 +134,7 @@
 			mainGroup = F88AA3E925F1F2170048F68C;
 			packageReferences = (
 				F88AA40E25F2296B0048F68C /* XCRemoteSwiftPackageReference "SwiftyBluetooth" */,
+				F817A9BC25F3D64B0029BA98 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
 			);
 			productRefGroup = F88AA3F325F1F2170048F68C /* Products */;
 			projectDirPath = "";
@@ -145,6 +152,7 @@
 			files = (
 				F88AA3FF25F1F2190048F68C /* Preview Assets.xcassets in Resources */,
 				F88AA3FC25F1F2190048F68C /* Assets.xcassets in Resources */,
+				F817A9CD25F3DD830029BA98 /* startup.gif in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -350,6 +358,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		F817A9BC25F3D64B0029BA98 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImageSwiftUI.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.1;
+			};
+		};
 		F88AA40E25F2296B0048F68C /* XCRemoteSwiftPackageReference "SwiftyBluetooth" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/jordanebelanger/SwiftyBluetooth.git";
@@ -361,6 +377,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		F817A9BD25F3D64C0029BA98 /* SDWebImageSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F817A9BC25F3D64B0029BA98 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
+			productName = SDWebImageSwiftUI;
+		};
 		F88AA40F25F2296B0048F68C /* SwiftyBluetooth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = F88AA40E25F2296B0048F68C /* XCRemoteSwiftPackageReference "SwiftyBluetooth" */;

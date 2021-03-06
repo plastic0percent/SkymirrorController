@@ -8,8 +8,9 @@
 import SwiftUI
 import SwiftyBluetooth
 import CoreBluetooth
+import SDWebImageSwiftUI
 
-struct ContentView: View {
+struct ControlView: View {
     // Whether the fish repeller beeper is on
     @State private var fishRepellerOn = false
     // Whether frequency is being edited
@@ -303,6 +304,29 @@ struct ContentView: View {
             Text("Copyright \u{00a9} 2021, Plastic 0%. All rights reserved.")
                 .font(.footnote)
                 .foregroundColor(.gray)
+        }
+    }
+}
+
+struct ContentView: View {
+    @State private var animateDone = false;
+    var body: some View {
+        if animateDone {
+            ControlView()
+        } else {
+            ZStack {
+                Color(.white).ignoresSafeArea()
+                AnimatedImage(name: "startup.gif")
+                    .customLoopCount(1)
+                    .scaledToFit()
+                    .onAppear {
+                        Timer.scheduledTimer(
+                            withTimeInterval: 11.07,
+                            repeats: false,
+                            block: {_ in animateDone = true}
+                        )
+                    }
+            }
         }
     }
 }
