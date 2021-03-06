@@ -12,7 +12,6 @@
 		F88AA3FA25F1F2170048F68C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88AA3F925F1F2170048F68C /* ContentView.swift */; };
 		F88AA3FC25F1F2190048F68C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F88AA3FB25F1F2190048F68C /* Assets.xcassets */; };
 		F88AA3FF25F1F2190048F68C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F88AA3FE25F1F2190048F68C /* Preview Assets.xcassets */; };
-		F88AA40225F1F2190048F68C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F88AA40025F1F2190048F68C /* LaunchScreen.storyboard */; };
 		F88AA41025F2296B0048F68C /* SwiftyBluetooth in Frameworks */ = {isa = PBXBuildFile; productRef = F88AA40F25F2296B0048F68C /* SwiftyBluetooth */; };
 		F88AA42625F31D300048F68C /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88AA42525F31D300048F68C /* Connection.swift */; };
 		F88AA42A25F31F120048F68C /* SkymirrorAspects.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88AA42925F31F120048F68C /* SkymirrorAspects.swift */; };
@@ -25,7 +24,6 @@
 		F88AA3F925F1F2170048F68C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		F88AA3FB25F1F2190048F68C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F88AA3FE25F1F2190048F68C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		F88AA40125F1F2190048F68C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		F88AA40325F1F2190048F68C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F88AA42525F31D300048F68C /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		F88AA42925F31F120048F68C /* SkymirrorAspects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkymirrorAspects.swift; sourceTree = "<group>"; };
@@ -66,7 +64,6 @@
 				F88AA3F725F1F2170048F68C /* SceneDelegate.swift */,
 				F88AA3F925F1F2170048F68C /* ContentView.swift */,
 				F88AA3FB25F1F2190048F68C /* Assets.xcassets */,
-				F88AA40025F1F2190048F68C /* LaunchScreen.storyboard */,
 				F88AA40325F1F2190048F68C /* Info.plist */,
 				F88AA3FD25F1F2190048F68C /* Preview Content */,
 				F88AA42525F31D300048F68C /* Connection.swift */,
@@ -146,7 +143,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F88AA40225F1F2190048F68C /* LaunchScreen.storyboard in Resources */,
 				F88AA3FF25F1F2190048F68C /* Preview Assets.xcassets in Resources */,
 				F88AA3FC25F1F2190048F68C /* Assets.xcassets in Resources */,
 			);
@@ -168,17 +164,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXVariantGroup section */
-		F88AA40025F1F2190048F68C /* LaunchScreen.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				F88AA40125F1F2190048F68C /* Base */,
-			);
-			name = LaunchScreen.storyboard;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		F88AA40425F1F2190048F68C /* Debug */ = {
