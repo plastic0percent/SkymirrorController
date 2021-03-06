@@ -14,10 +14,10 @@
             filePath = "Skymirror Controller/ContentView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "413"
-            endingLineNumber = "413"
-            landmarkName = "previews"
-            landmarkType = "24">
+            startingLineNumber = "450"
+            endingLineNumber = "450"
+            landmarkName = "ContentView_Previews"
+            landmarkType = "14">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
