@@ -30,6 +30,8 @@ struct ContentView: View {
     @State private var bleAlertMsg: String = "";
     // Whether the Scan pad is shown
     @State private var isShowScanPad = true;
+    // Whether the log is shown
+    @State private var isShowLogPad = false;
     // Dictionary of (UUID: Peripheral)
     // Dictionary is used to avoid duplicate results
     @State private var foundDevices = [UUID: Peripheral]()
@@ -37,10 +39,7 @@ struct ContentView: View {
     @State private var statusList: [(String, String)] = []
     private var skymirrorController = SkymirrorController()
     
-    /// Toggle BLE device scan area
-    func toggleScanPad() {
-        isShowScanPad = !isShowScanPad
-    }
+    // MARK: Methods start here
     
     /// Create an alert with a Dismiss button
     func createAlert(message: String) {
@@ -97,7 +96,7 @@ struct ContentView: View {
                 Text("Skymirror Controller").font(.title)
                 // Connection selection
                 Button(action: {() -> Void in
-                    toggleScanPad()
+                    isShowScanPad = !isShowScanPad
                 }) {
                     Text(isShowScanPad ? "Hide" : "Connect")
                     Image(systemName: "iphone.radiowaves.left.and.right")
@@ -125,9 +124,9 @@ struct ContentView: View {
                                     completion: {result in
                                         switch result {
                                         case .success:
-                                            // Update the information every second
+                                            // Update the information every 5 seconds
                                             Timer.scheduledTimer(
-                                                withTimeInterval: 1.0,
+                                                withTimeInterval: 5.0,
                                                 repeats: true,
                                                 block: {_ in self.reqStatusUpdate()}
                                             )
@@ -268,15 +267,34 @@ struct ContentView: View {
         VStack {
             Divider()
             HStack {
+                Spacer()
                 // Calibrate sensor
                 Button(action: wrapperAlertCb(origFunc: skymirrorController.calibrate)) {
-                    Text("Calibrate Sensor")
+                    Text("Calibrate")
                 }
+                Spacer()
                 // Re-setup
                 Button(action: wrapperAlertCb(origFunc: skymirrorController.boardSetup)) {
                     Text("Setup")
                 }
+                Spacer()
+                // Show log
+                Button(action: {isShowLogPad = !isShowLogPad}, label: {
+                    Text("Toggle log")
+                })
+                Spacer()
             }
+        }
+        
+        // MARK: Log pad
+        if isShowLogPad {
+            VStack {
+                Divider()
+                ScrollView {
+                    Text(self.skymirrorController.logBuffer)
+                }
+            }
+            
         }
         
         // MARK: Footnote

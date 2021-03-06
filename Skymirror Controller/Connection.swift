@@ -38,7 +38,7 @@ class ConnectionController {
     // Payload from BLE
     private var receivedPayload = Data.init()
     // Payload receive complete callback
-    private var onReceiveComplete: ((_ payload: Data) -> Void)? = nil
+    private var onReceiveComplete: ((_ payload: Data, _ otherData: Data) -> Void)? = nil
     
     /// Scan devices, whenever state changes, stateChange is called
     func scan(stateChange: @escaping (Result<(UUID, Peripheral), Error>) -> Void) {
@@ -61,7 +61,7 @@ class ConnectionController {
     }
     
     /// Set the onReceiveComplete trigger
-    func setOnReceiveComplete(callback: @escaping ((_ payload: Data) -> Void)) {
+    func setOnReceiveComplete(callback: @escaping ((_ payload: Data, _ otherData: Data) -> Void)) {
         self.onReceiveComplete = callback
     }
     
@@ -83,19 +83,24 @@ class ConnectionController {
                     if charac.isNotifying {
                         let val = charac.value!
                         self.receivedPayload.append(val)
-                        // Continue to process until EOT is received
-                        let eotpos = self.receivedPayload.firstIndex(of: 0x04)
-                        if eotpos != nil {
-                            // Process payload, remove things after EOT
-                            let processedPayload = self.receivedPayload[0..<eotpos!]
-                            print("Received data: \(processedPayload.base64EncodedString())")
-                            // Send the trimmed payload
-                            if self.onReceiveComplete != nil {
-                                self.onReceiveComplete!(processedPayload)
+                        // Continue to process until ETX is received
+                        let etxpos = self.receivedPayload.firstIndex(of: 0x03)
+                        if etxpos != nil {
+                            let stxpos = self.receivedPayload.firstIndex(of: 0x02)
+                            if stxpos != nil {
+                                // If no start symbol, drop this whole message
+                                // Process payload, remove things before SOT and after EOT
+                                let processedPayload = self.receivedPayload[stxpos!+1..<etxpos!]
+                                // The data before STX might be log
+                                let otherData = self.receivedPayload[0..<stxpos!]
+                                print("Received data: \(processedPayload.base64EncodedString())")
+                                // Send the trimmed payload
+                                if self.onReceiveComplete != nil {
+                                    self.onReceiveComplete!(processedPayload, otherData)
+                                }
                             }
-                            // Clear received payload
-                            self.receivedPayload.removeAll(keepingCapacity: true)
-                            
+                            // Remove processed payload
+                            self.receivedPayload.removeSubrange(0...etxpos!)
                         }
                     }
                 }

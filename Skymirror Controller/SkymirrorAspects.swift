@@ -60,11 +60,16 @@ class SkymirrorController {
     private var expectedPayload: ExpectedPayload = .statusData;
     // Status payload, from receivedPayload
     private var decodedStatusPayload = DataResponse()
+    // Log buffer
+    public var logBuffer = ""
     
     /// Connect the underlying BLE device
     func connect(peripheral: Peripheral, completion: @escaping ConnectionCallback) {
         // XXX: Possible data race when setting payload
-        self.connection.setOnReceiveComplete(callback: {(payload: Data) -> Void in
+        self.connection.setOnReceiveComplete(callback: {(payload: Data, otherData: Data) -> Void in
+            // Write log buffer
+            self.logBuffer.append(String.init(data: otherData, encoding: .utf8) ?? "")
+            // Process actual payload
             switch self.expectedPayload {
             case .imageData:
                 break
