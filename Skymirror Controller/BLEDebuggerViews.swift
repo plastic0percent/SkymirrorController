@@ -190,6 +190,8 @@ struct BLEDebuggerDeviceView: View {
         }
         .navigationTitle(Text("Services and Characteristics"))
         .onAppear {
+            // First clear all flags
+            isLinkActive = false
             // Construct a list of all services and their characteristics
             connection.scanServices() { result in
                 switch result {
