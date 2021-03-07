@@ -95,8 +95,8 @@ struct BLEDebuggerMainView: View {
 
 
 struct BLEDebuggerDeviceView: View {
-    // Discovered services
-    @State private var services: [(CBService, [CBCharacteristic])] = []
+    // Discovered services, use dictionary to avoid duplicates
+    @State private var services = [String: (CBService, [CBCharacteristic])]()
     // Whether the link to the next view is active
     @State private var isLinkActive = false
     // The selected service
@@ -122,11 +122,11 @@ struct BLEDebuggerDeviceView: View {
             ScrollView {
                 LazyVStack {
                     // Show all found services
-                    ForEach(services, id: \.0) {
-                        let service = $0.0
+                    ForEach(Array(services.keys), id: \.self) {
+                        let service = services[$0]!.0
                         let serviceName = service.CBUUIDRepresentation
-                        let serviceUUID = service.CBUUIDRepresentation.uuidString
-                        let characs = service.characteristics ?? []
+                        let serviceUUID = $0
+                        let characs = services[$0]!.1
                         
                         // Show service information
                         HStack {
@@ -200,7 +200,7 @@ struct BLEDebuggerDeviceView: View {
                             completion: {result in
                                 switch result {
                                 case .success(let characs):
-                                    self.services.append((service, characs))
+                                    self.services[service.CBUUIDRepresentation.uuidString] = (service, characs)
                                     break
                                 case .failure(let error):
                                     self.createAlert(message: error.localizedDescription)
