@@ -35,13 +35,9 @@ func getDeviceName(peripheral: Peripheral) -> String {
 class ConnectionController {
     // The Peripheral in use
     private var usingPeripheral: Peripheral? = nil
-    // Payload from BLE
-    private var receivedPayload = Data.init()
-    // Payload receive complete callback
-    private var onReceiveComplete: ((_ payload: Data, _ otherData: Data) -> Void)? = nil
     
-    /// Scan devices, whenever state changes, stateChange is called
-    func scan(stateChange: @escaping (Result<(UUID, Peripheral), Error>) -> Void) {
+    /// Scan all devices, whenever state changes, stateChange is called
+    func scan(stateChange: @escaping (Result<(Peripheral, [String: Any], Int?), Error>) -> Void) {
         SwiftyBluetooth.scanForPeripherals(
             withServiceUUIDs: nil,
             timeoutAfter: 15
@@ -50,8 +46,8 @@ class ConnectionController {
             case .scanStarted:
                 // No need to handle this
                 break
-            case .scanResult(let peripheral, _, _):
-                stateChange(.success((peripheral.identifier, peripheral)));
+            case .scanResult(let peripheral, let advertisement, let RSSI):
+                stateChange(.success((peripheral, advertisement, RSSI)));
             case .scanStopped(_, let error):
                 if error != nil {
                     stateChange(.failure(error!))
@@ -60,84 +56,66 @@ class ConnectionController {
         }
     }
     
-    /// Set the onReceiveComplete trigger
-    func setOnReceiveComplete(callback: @escaping ((_ payload: Data, _ otherData: Data) -> Void)) {
-        self.onReceiveComplete = callback
+    func setPeripheral(peripheral: Peripheral) {
+        self.usingPeripheral = peripheral
     }
     
-    /// Connect to a peripheral and set appropriate variables
-    func connect(peripheral: Peripheral, completion: @escaping ConnectionCallback) {
-        peripheral.connect(withTimeout: 15) { result in
-            switch result {
-            case .success:
-                // Record the peripheral
-                self.usingPeripheral = peripheral
-                // Add BLE notification callback
-                NotificationCenter.default.addObserver(forName: Peripheral.PeripheralCharacteristicValueUpdate,
-                                                       object: peripheral,
-                                                       queue: nil) { notification in
-                    let charac = notification.userInfo!["characteristic"] as! CBCharacteristic
-                    if let error = notification.userInfo?["error"] as? SBError {
-                        return completion(.failure(error))
-                    }
-                    if charac.isNotifying {
-                        let val = charac.value!
-                        self.receivedPayload.append(val)
-                        // Continue to process until ETX is received
-                        let etxpos = self.receivedPayload.firstIndex(of: 0x03)
-                        if etxpos != nil {
-                            let stxpos = self.receivedPayload.firstIndex(of: 0x02)
-                            if stxpos != nil {
-                                // If no start symbol, drop this whole message
-                                // Process payload, remove things before SOT and after EOT
-                                let processedPayload = self.receivedPayload[stxpos!+1..<etxpos!]
-                                // The data before STX might be log
-                                let otherData = self.receivedPayload[0..<stxpos!]
-                                print("Received data: \(processedPayload.base64EncodedString())")
-                                // Send the trimmed payload
-                                if self.onReceiveComplete != nil {
-                                    self.onReceiveComplete!(processedPayload, otherData)
-                                }
-                            }
-                            // Remove processed payload
-                            self.receivedPayload.removeSubrange(0...etxpos!)
-                        }
-                    }
-                }
-                
-                // Enable notification
-                peripheral.setNotifyValue(
-                    toEnabled: true,
-                    forCharacWithUUID: "FFE1",
-                    ofServiceWithUUID: "FFE0"
-                ) { result in
-                    print("Notification: \(result)")
-                }
-                return completion(.success(()))
-            case .failure(let error):
-                return completion(.failure(error))
-            }
-        }
-    }
-    
-    // Write data to the FFE2 characteristc
-    func write(cmd: UInt8, arg: UInt8, completion: @escaping ConnectionCallback) {
+    /// Register notification
+    func addNotify(ofCharacWithUUID: String,
+                   fromServiceWithUUID: String,
+                   completion: @escaping ConnectionCallback,
+                   onReceive: @escaping (_ value: Data) -> Void) {
         if usingPeripheral == nil {
             return completion(.failure(ConnectionError.noDeviceError))
         }
-        let payload: UInt16 = UInt16(cmd)<<8 + UInt16(arg)
-        usingPeripheral!.writeValue(
-            ofCharacWithUUID: "FFE2",
-            fromServiceWithUUID: "FFE0",
-            value: withUnsafeBytes(of: payload.bigEndian) { Data($0) }
-        ) { result in
-            switch result {
-            case .success:
-                return completion(.success(()))
-            case .failure(let error):
+        // Add BLE notification callback
+        NotificationCenter.default.addObserver(forName: Peripheral.PeripheralCharacteristicValueUpdate,
+                                               object: usingPeripheral,
+                                               queue: nil) { notification in
+            let charac = notification.userInfo!["characteristic"] as! CBCharacteristic
+            if let error = notification.userInfo?["error"] as? SBError {
                 return completion(.failure(error))
             }
+            if charac.isNotifying {
+                onReceive(charac.value!)
+            }
         }
+        
+        // Enable notification
+        usingPeripheral!.setNotifyValue(
+            toEnabled: true,
+            forCharacWithUUID: ofCharacWithUUID,
+            ofServiceWithUUID: fromServiceWithUUID
+        ) { result in
+            print("Notification: \(result)")
+        }
+        return completion(.success(()))
+    }
+    
+    /// Connect to a peripheral and set appropriate variables
+    func connect(completion: @escaping ConnectionCallback) {
+        if usingPeripheral == nil {
+            return completion(.failure(ConnectionError.noDeviceError))
+        }
+        usingPeripheral!.connect(withTimeout: 15, completion: completion)
+    }
+    
+    /// Disconnect the device
+    func disconnect(completion: @escaping ConnectionCallback) {
+        usingPeripheral?.disconnect(completion: completion)
+    }
+    
+    /// Write data to the device
+    func write(data: Data, ofCharacWithUUID: String, fromServiceWithUUID: String, completion: @escaping ConnectionCallback) {
+        if usingPeripheral == nil {
+            return completion(.failure(ConnectionError.noDeviceError))
+        }
+        usingPeripheral!.writeValue(
+            ofCharacWithUUID: ofCharacWithUUID,
+            fromServiceWithUUID: fromServiceWithUUID,
+            value: data,
+            completion: completion
+        )
     }
 }
 

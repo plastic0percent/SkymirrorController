@@ -56,76 +56,134 @@ struct DataResponse: Decodable {
 class SkymirrorController {
     // BLE Connection
     public var connection = ConnectionController()
+    // Payload from BLE
+    private var receivedPayload = Data.init()
     // Which payload is expected, 0 for status, 1 for image
     private var expectedPayload: ExpectedPayload = .statusData;
     // Status payload, from receivedPayload
     private var decodedStatusPayload = DataResponse()
     // Log buffer
     public var logBuffer = ""
+    // Whether is connected
+    public var isConnected = false
+    
+    /// Scan for devices, getting only an ID and the peripheral
+    func scan(stateChange: @escaping (Result<(UUID, Peripheral), Error>) -> Void) {
+        self.connection.scan(stateChange: {result in
+            switch result {
+            case .success((let peripheral, _, _)):
+                stateChange(.success((peripheral.identifier, peripheral)))
+                break
+            case .failure(let error):
+                stateChange(.failure(error))
+            }
+        })
+    }
     
     /// Connect the underlying BLE device
     func connect(peripheral: Peripheral, completion: @escaping ConnectionCallback) {
-        // XXX: Possible data race when setting payload
-        self.connection.setOnReceiveComplete(callback: {(payload: Data, otherData: Data) -> Void in
-            // Write log buffer
-            self.logBuffer.append(String.init(data: otherData, encoding: .utf8) ?? "")
-            // Process actual payload
-            switch self.expectedPayload {
-            case .imageData:
+        self.connection.setPeripheral(peripheral: peripheral)
+        self.connection.connect(completion: {result in
+            switch result {
+            case .success:
+                self.connection.addNotify(
+                    ofCharacWithUUID: "FFE1",
+                    fromServiceWithUUID: "FFE0",
+                    completion: completion,
+                    onReceive: {val in
+                        self.receivedPayload.append(val)
+                        // Continue to process until ETX is received
+                        let etxpos = self.receivedPayload.firstIndex(of: 0x03)
+                        if etxpos != nil {
+                            let stxpos = self.receivedPayload.firstIndex(of: 0x02)
+                            if stxpos != nil {
+                                // If no start symbol, drop this whole message
+                                // Process payload, remove things before SOT and after EOT
+                                let processedPayload = self.receivedPayload[stxpos!+1..<etxpos!]
+                                // The data before STX might be log
+                                let otherData = self.receivedPayload[0..<stxpos!]
+                                print("Received data: \(processedPayload.base64EncodedString())")
+                                // Write log buffer
+                                self.logBuffer.append(String.init(data: otherData, encoding: .utf8) ?? "")
+                                // Process actual payload
+                                switch self.expectedPayload {
+                                // XXX: Possible data race when setting payload
+                                case .imageData:
+                                    break
+                                case .statusData:
+                                    // Only decode once received
+                                    do {
+                                        self.decodedStatusPayload = try JSONDecoder()
+                                            .decode(DataResponse.self, from: processedPayload)
+                                    } catch {
+                                        let description = error.localizedDescription
+                                        return completion(.failure(DataError.jsonError(message: description)))
+                                    }
+                                }
+                            }
+                            // Remove processed payload
+                            self.receivedPayload.removeSubrange(0...etxpos!)
+                        }
+                    })
                 break
-            case .statusData:
-                // Only decode once received
-                do {
-                    self.decodedStatusPayload = try JSONDecoder()
-                        .decode(DataResponse.self, from: payload)
-                } catch {
-                    let description = error.localizedDescription
-                    return completion(.failure(DataError.jsonError(message: description)))
-                }
+            case .failure(let e):
+                completion(.failure(e))
+                break
             }
         })
-        self.connection.connect(peripheral: peripheral, completion: completion)
+    }
+    
+    /// Disconnect the underlying BLE device
+    func disconnect(completion: @escaping ConnectionCallback) {
+        self.connection.disconnect(completion: completion)
+    }
+    
+    /// Write data to the FFE2 characteristc
+    func write(cmd: UInt8, arg: UInt8, completion: @escaping ConnectionCallback) {
+        let payload: UInt16 = UInt16(cmd)<<8 + UInt16(arg)
+        let payloadData = withUnsafeBytes(of: payload.bigEndian) { Data($0) }
+        connection.write(data: payloadData, ofCharacWithUUID: "FFE2", fromServiceWithUUID: "FFE0", completion: completion)
     }
     
     /// Set fish repeller frequency
     func setFrequency(frequency: Double, completion: @escaping ConnectionCallback) {
-        connection.write(cmd: 0x40, arg: UInt8(frequency / 30), completion: completion)
+        self.write(cmd: 0x40, arg: UInt8(frequency / 30), completion: completion)
     }
     
     /// Set motor ESC speed
     func setEscSpeed(speed: Double, completion: @escaping ConnectionCallback) {
-        connection.write(cmd: 0x50, arg: UInt8(speed / 10), completion: completion)
+        self.write(cmd: 0x50, arg: UInt8(speed / 10), completion: completion)
     }
     
     /// Set turning servo value
     func setTurningValue(value: Double, completion: @escaping ConnectionCallback) {
-        connection.write(cmd: 0x60, arg: UInt8(value), completion: completion)
+        self.write(cmd: 0x60, arg: UInt8(value), completion: completion)
     }
     
     /// Send calibrate signal
     func calibrate(completion: @escaping ConnectionCallback) {
-        connection.write(cmd: 0x00, arg: 0x00, completion: completion)
+        self.write(cmd: 0x00, arg: 0x00, completion: completion)
     }
     
     /// Send re-setup signal
     func boardSetup(completion: @escaping ConnectionCallback) {
-        connection.write(cmd: 0xff, arg: 0x00, completion: completion)
+        self.write(cmd: 0xff, arg: 0x00, completion: completion)
     }
     
     /// Request status information
     func requestInfo(completion: @escaping ConnectionCallback) {
         expectedPayload = .statusData;
-        connection.write(cmd: 0x02, arg: 0x00, completion: completion)
+        self.write(cmd: 0x02, arg: 0x00, completion: completion)
     }
     
     /// Request image
     func requestImage(completion: @escaping ConnectionCallback) {
         expectedPayload = .imageData;
-        connection.write(cmd: 0x01, arg: 0x01, completion: completion)
+        self.write(cmd: 0x01, arg: 0x01, completion: completion)
     }
     
     /// Get a data value from the received payload
-    func getData(key: String, completion: (_ result: Result<String, Error>) -> Void) {
+    private func getData(key: String, completion: (_ result: Result<String, Error>) -> Void) {
         var result: String
         switch key {
         case "time":

@@ -42,21 +42,21 @@ struct ContentView: View {
     // MARK: Methods start here
     
     /// Create an alert with a Dismiss button
-    func createAlert(message: String) {
+    private func createAlert(message: String) {
         isShowBleAlert = true
         bleAlertMsg = message
     }
     
     /// Used as closures to create alerts when functions fail
-    func okOrAlert(result: Result<Void, Error>) {
+    private func okOrAlert(result: Result<Void, Error>) {
         if case let .failure(error) = result {
             createAlert(message: error.localizedDescription)
         }
     }
     
     /// Convert functions with a completion callback to simple functions which alerts on failure
-    func wrapperAlertCb(origFunc: @escaping (_ completion: @escaping ConnectionCallback) -> Void) -> (() -> Void) {
-        return {() -> Void in
+    private func wrapperAlertCb(origFunc: @escaping (_ completion: @escaping ConnectionCallback) -> Void) -> (() -> Void) {
+        return {
             origFunc(self.okOrAlert)
         }
     }
@@ -77,7 +77,7 @@ struct ContentView: View {
     }
     
     private func scanAction() {
-        skymirrorController.connection.scan(stateChange: {result in
+        skymirrorController.scan(stateChange: {result in
             switch result {
             case .success(let item):
                 foundDevices[item.0] = item.1
@@ -87,222 +87,237 @@ struct ContentView: View {
         })
     }
     
+    private func createConnectAction(peripheral: Peripheral) -> (() -> Void) {
+        return {
+            skymirrorController.connect(
+                peripheral: peripheral,
+                completion: {result in
+                    switch result {
+                    case .success:
+                        // Update the information every 5 seconds
+                        Timer.scheduledTimer(
+                            withTimeInterval: 5.0,
+                            repeats: true,
+                            block: {_ in self.reqStatusUpdate()}
+                        )
+                        // Hide scan bar
+                        isShowScanPad = false
+                        break
+                    case .failure(let error):
+                        self.createAlert(message: error.localizedDescription)
+                    }
+                }
+            )
+        }
+    }
+    
     // MARK: View starts here
     
     var body: some View {
-        // Title
-        VStack {
-            HStack {
-                Text("Skymirror Controller").font(.title)
-                // Connection selection
-                Button(action: {() -> Void in
-                    isShowScanPad = !isShowScanPad
-                }) {
-                    Text(isShowScanPad ? "Hide" : "Connect")
-                    Image(systemName: "iphone.radiowaves.left.and.right")
-                }
-            }
-            if isShowScanPad {
-                // The scanning tab
-                ScrollView {
-                    LazyVStack {
-                        // "Scan" button
-                        Button(action: scanAction) {
-                            Text("Rescan")
-                            Image(systemName: "magnifyingglass")
-                        }.onAppear {
-                            // Start scan automatically
-                            self.scanAction()
-                        }
-                        // Show all found devices
-                        ForEach(Array(foundDevices.keys), id: \.self) {
-                            let peripheral = foundDevices[$0]!;
-                            let name = getDeviceName(peripheral: peripheral);
-                            Button(action: {() -> Void in
-                                skymirrorController.connect(
-                                    peripheral: peripheral,
-                                    completion: {result in
-                                        switch result {
-                                        case .success:
-                                            // Update the information every 5 seconds
-                                            Timer.scheduledTimer(
-                                                withTimeInterval: 5.0,
-                                                repeats: true,
-                                                block: {_ in self.reqStatusUpdate()}
-                                            )
-                                            // Hide scan bar
-                                            isShowScanPad = false
-                                            break
-                                        case .failure(let error):
-                                            self.createAlert(message: error.localizedDescription)
-                                        }
-                                    })
-                            }, label: {
-                                Text(name)
-                            })
-                        }
-                    }
-                }
-            }
-        }.alert(isPresented: $isShowBleAlert) { () -> Alert in
-            let button = Alert.Button.default(Text("Dismiss"))
-            return Alert(title: Text("BLE Warning"),
-                         message: Text(bleAlertMsg),
-                         dismissButton: button
-            )
-        }
-        
-        // MARK: Data columns
-        VStack {
-            Divider()
-            // Place this notice if not connected
-            if statusList.isEmpty {
-                Text("Welcome to Skymirror Controller")
-                Text("Press \"Scan\" to look for a device")
-            }
-            let columns: [GridItem] =
-                Array(repeating: .init(.flexible()), count: 2)
-            ScrollView {
-                LazyVGrid(columns: columns) {
-                    ForEach(statusList, id: \.0) {
-                        let title = $0.0
-                        let value = $0.1
-                        // Data caption
-                        Text("\(title)")
-                            .bold()
-                            .font(.system(size: 18))
-                        // Data value
-                        Text("\(value)")
-                            .font(.system(size: 16, weight: .light))
-                    }
-                }
-            }
-        }
-        
-        // MARK: Fish repeller control
-        VStack {
-            Divider()
-            // Fish repeller toggle
-            HStack {
-                Spacer()
-                Toggle(isOn: $fishRepellerOn) {
-                    Text("Fish Repeller")
-                }
-                Spacer()
-            }
-            
-            // Allow editing frequency only when on
-            if fishRepellerOn {
-                Divider()
-                Text("Frequency")
-                HStack {
-                    Spacer()
-                    Slider(
-                        value: $freqVal,
-                        in: 0...7679,
-                        onEditingChanged: { editing in
-                            isFreqEditing = editing
-                            if editing == false {
-                                // Commit value
-                                skymirrorController.setFrequency(frequency: freqVal, completion: okOrAlert)
+        NavigationView {
+            VStack {
+                // MARK: Scan Tab
+                if isShowScanPad {
+                    ScrollView {
+                        LazyVStack {
+                            // "Scan" button
+                            Button(action: scanAction) {
+                                Text("Rescan")
+                                Image(systemName: "magnifyingglass")
+                            }.onAppear {
+                                // Start scan automatically
+                                self.scanAction()
+                            }
+                            // Show all found devices
+                            ForEach(Array(foundDevices.keys), id: \.self) {
+                                let peripheral = foundDevices[$0]!;
+                                let name = getDeviceName(peripheral: peripheral);
+                                Button(action: createConnectAction(peripheral: peripheral), label: {
+                                    Text(name)
+                                })
                             }
                         }
+                    }
+                }
+                
+                // MARK: Data columns
+                VStack {
+                    Divider()
+                    // Place this notice if not connected
+                    if statusList.isEmpty {
+                        Text("Welcome to Skymirror Controller")
+                        Text("Press \"Scan\" to look for a device")
+                    }
+                    let columns: [GridItem] =
+                        Array(repeating: .init(.flexible()), count: 2)
+                    ScrollView {
+                        LazyVGrid(columns: columns) {
+                            ForEach(statusList, id: \.0) {
+                                let title = $0.0
+                                let value = $0.1
+                                // Data caption
+                                Text("\(title)")
+                                    .bold()
+                                    .font(.system(size: 18))
+                                // Data value
+                                Text("\(value)")
+                                    .font(.system(size: 16, weight: .light))
+                            }
+                        }
+                    }
+                }
+                
+                // MARK: Fish repeller control
+                VStack {
+                    Divider()
+                    // Fish repeller toggle
+                    HStack {
+                        Spacer()
+                        Toggle(isOn: $fishRepellerOn) {
+                            Text("Fish Repeller")
+                        }
+                        Spacer()
+                    }
+                    
+                    // Allow editing frequency only when on
+                    if fishRepellerOn {
+                        Divider()
+                        Text("Frequency")
+                        HStack {
+                            Spacer()
+                            Slider(
+                                value: $freqVal,
+                                in: 0...7679,
+                                onEditingChanged: { editing in
+                                    isFreqEditing = editing
+                                    if editing == false {
+                                        // Commit value
+                                        skymirrorController.setFrequency(frequency: freqVal, completion: okOrAlert)
+                                    }
+                                }
+                            )
+                            Text(String(format: "%.2f", freqVal))
+                                .foregroundColor(isFreqEditing ? .red : .blue)
+                            Spacer()
+                        }
+                    }
+                }
+                
+                // MARK: Motor control
+                VStack {
+                    Divider()
+                    Text("Main Motor")
+                    HStack {
+                        Spacer()
+                        Slider(
+                            value: $motorVal,
+                            in: 1500...2000,
+                            onEditingChanged: { editing in
+                                isMotorEditing = editing
+                                if editing == false {
+                                    // Commit value
+                                    skymirrorController.setEscSpeed(speed: motorVal, completion: okOrAlert)
+                                }
+                            }
+                        )
+                        Text(String(format: "%.2f", motorVal))
+                            .foregroundColor(isMotorEditing ? .red : .blue)
+                        Spacer()
+                    }
+                }
+                
+                // MARK: Turning control
+                VStack {
+                    Divider()
+                    Text("Direction")
+                    HStack {
+                        Spacer()
+                        Text("L")
+                        Slider(
+                            value: $turningVal,
+                            in: 23...54,
+                            onEditingChanged: { editing in
+                                isTurningEditing = editing
+                                if editing == false {
+                                    // Commit value
+                                    skymirrorController.setTurningValue(value: turningVal, completion: okOrAlert)
+                                }
+                            }
+                        )
+                        Text("R")
+                        Spacer()
+                    }
+                    Text(String(format: "%.2f", turningVal))
+                        .foregroundColor(isTurningEditing ? .red : .blue)
+                }
+                
+                // MARK: Calibration control
+                VStack {
+                    Divider()
+                    HStack {
+                        Spacer()
+                        // Go to BLE debugger
+                        NavigationLink("Debugger", destination: BLEDebuggerMainView())
+                        Spacer()
+                        // Calibrate sensor
+                        Button(action: wrapperAlertCb(origFunc: skymirrorController.calibrate)) {
+                            Text("Calibrate")
+                        }
+                        Spacer()
+                        // Re-setup
+                        Button(action: wrapperAlertCb(origFunc: skymirrorController.boardSetup)) {
+                            Text("Setup")
+                        }
+                        Spacer()
+                        // Show log
+                        Button(action: {isShowLogPad = !isShowLogPad}, label: {
+                            Text("Toggle log")
+                        })
+                        Spacer()
+                    }
+                }
+                
+                // MARK: Log pad
+                if isShowLogPad {
+                    VStack {
+                        Divider()
+                        ScrollView {
+                            Text(self.skymirrorController.logBuffer)
+                        }
+                    }
+                    
+                }
+                
+                // MARK: Footnote
+                VStack {
+                    Divider()
+                    Text("Copyright \u{00a9} 2021, Plastic 0%. All rights reserved.")
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                }.alert(isPresented: $isShowBleAlert) { () -> Alert in
+                    let button = Alert.Button.default(Text("Dismiss"))
+                    return Alert(title: Text("BLE Warning"),
+                                 message: Text(bleAlertMsg),
+                                 dismissButton: button
                     )
-                    Text(String(format: "%.2f", freqVal))
-                        .foregroundColor(isFreqEditing ? .red : .blue)
-                    Spacer()
                 }
             }
-        }
-        
-        // MARK: Motor control
-        VStack {
-            Divider()
-            Text("Main Motor")
-            HStack {
-                Spacer()
-                Slider(
-                    value: $motorVal,
-                    in: 1500...2000,
-                    onEditingChanged: { editing in
-                        isMotorEditing = editing
-                        if editing == false {
-                            // Commit value
-                            skymirrorController.setEscSpeed(speed: motorVal, completion: okOrAlert)
-                        }
-                    }
-                )
-                Text(String(format: "%.2f", motorVal))
-                    .foregroundColor(isMotorEditing ? .red : .blue)
-                Spacer()
+            .navigationBarTitle(Text("Skymirror Controller"), displayMode: .inline)
+            .navigationBarItems(trailing:
+                                    // Connection selection
+                                    Button(action: {
+                                        isShowScanPad = !isShowScanPad
+                                    }) {
+                                        HStack {
+                                            Text(isShowScanPad ? "Hide" : "Connect")
+                                            Image(systemName: "iphone.radiowaves.left.and.right")
+                                        }
+                                    }
+            )
+            .onDisappear() {
+                // Disconnect pheriherals on disappear
+                self.skymirrorController.disconnect(completion: okOrAlert)
             }
-        }
-        
-        // MARK: Turning control
-        VStack {
-            Divider()
-            Text("Direction")
-            HStack {
-                Spacer()
-                Text("L")
-                Slider(
-                    value: $turningVal,
-                    in: 23...54,
-                    onEditingChanged: { editing in
-                        isTurningEditing = editing
-                        if editing == false {
-                            // Commit value
-                            skymirrorController.setTurningValue(value: turningVal, completion: okOrAlert)
-                        }
-                    }
-                )
-                Text("R")
-                Spacer()
-            }
-            Text(String(format: "%.2f", turningVal))
-                .foregroundColor(isTurningEditing ? .red : .blue)
-        }
-        
-        // MARK: Calibration control
-        VStack {
-            Divider()
-            HStack {
-                Spacer()
-                // Calibrate sensor
-                Button(action: wrapperAlertCb(origFunc: skymirrorController.calibrate)) {
-                    Text("Calibrate")
-                }
-                Spacer()
-                // Re-setup
-                Button(action: wrapperAlertCb(origFunc: skymirrorController.boardSetup)) {
-                    Text("Setup")
-                }
-                Spacer()
-                // Show log
-                Button(action: {isShowLogPad = !isShowLogPad}, label: {
-                    Text("Toggle log")
-                })
-                Spacer()
-            }
-        }
-        
-        // MARK: Log pad
-        if isShowLogPad {
-            VStack {
-                Divider()
-                ScrollView {
-                    Text(self.skymirrorController.logBuffer)
-                }
-            }
-            
-        }
-        
-        // MARK: Footnote
-        VStack {
-            Divider()
-            Text("Copyright \u{00a9} 2021, Plastic 0%. All rights reserved.")
-                .font(.footnote)
-                .foregroundColor(.gray)
         }
     }
 }
@@ -312,4 +327,3 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
-

@@ -15,6 +15,7 @@
 		F88AA41025F2296B0048F68C /* SwiftyBluetooth in Frameworks */ = {isa = PBXBuildFile; productRef = F88AA40F25F2296B0048F68C /* SwiftyBluetooth */; };
 		F88AA42625F31D300048F68C /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88AA42525F31D300048F68C /* Connection.swift */; };
 		F88AA42A25F31F120048F68C /* SkymirrorAspects.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88AA42925F31F120048F68C /* SkymirrorAspects.swift */; };
+		F89BC97E25F446BE00D61E27 /* BLEDebuggerViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89BC97D25F446BE00D61E27 /* BLEDebuggerViews.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +28,7 @@
 		F88AA40325F1F2190048F68C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F88AA42525F31D300048F68C /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		F88AA42925F31F120048F68C /* SkymirrorAspects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkymirrorAspects.swift; sourceTree = "<group>"; };
+		F89BC97D25F446BE00D61E27 /* BLEDebuggerViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEDebuggerViews.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +70,7 @@
 				F88AA3FD25F1F2190048F68C /* Preview Content */,
 				F88AA42525F31D300048F68C /* Connection.swift */,
 				F88AA42925F31F120048F68C /* SkymirrorAspects.swift */,
+				F89BC97D25F446BE00D61E27 /* BLEDebuggerViews.swift */,
 			);
 			path = "Skymirror Controller";
 			sourceTree = "<group>";
@@ -158,6 +161,7 @@
 				F88AA3F625F1F2170048F68C /* AppDelegate.swift in Sources */,
 				F88AA3F825F1F2170048F68C /* SceneDelegate.swift in Sources */,
 				F88AA3FA25F1F2170048F68C /* ContentView.swift in Sources */,
+				F89BC97E25F446BE00D61E27 /* BLEDebuggerViews.swift in Sources */,
 				F88AA42625F31D300048F68C /* Connection.swift in Sources */,
 				F88AA42A25F31F120048F68C /* SkymirrorAspects.swift in Sources */,
 			);
