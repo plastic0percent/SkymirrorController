@@ -135,6 +135,18 @@ class ConnectionController {
         usingPeripheral?.disconnect(completion: completion)
     }
     
+    /// Read data from the device
+    func read(ofCharacWithUUID: String, fromServiceWithUUID: String, completion: @escaping (_ data: Result<Data, Error>) -> Void) {
+        if usingPeripheral == nil {
+            return completion(.failure(ConnectionError.noDeviceError))
+        }
+        usingPeripheral!.readValue(
+            ofCharacWithUUID: ofCharacWithUUID,
+            fromServiceWithUUID: fromServiceWithUUID,
+            completion: completion
+        )
+    }
+    
     /// Write data to the device
     func write(data: Data, ofCharacWithUUID: String, fromServiceWithUUID: String, completion: @escaping ConnectionCallback) {
         if usingPeripheral == nil {

@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftyBluetooth
 import CoreBluetooth
 
+
 // Extension to Binding<String?> to make it possible to be used as bool
 extension Binding where Value == String? {
     func isShown() -> Binding<Bool> {

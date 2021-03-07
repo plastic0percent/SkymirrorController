@@ -16,19 +16,19 @@ struct BLEDebuggerMainView: View {
     @State private var isLinkActive = false
     @Binding var bleAlert: String?
     
-    // MARK: Debugger Main View
-    
     /// Create an alert with a Dismiss button
-    private func createAlert(message: String) {
-        bleAlert = message
+    func createAlert(message: String) {
+        self.bleAlert = message
     }
     
     /// Used as closures to create alerts when functions fail
-    private func okOrAlert(result: Result<Void, Error>) {
+    func okOrAlert(result: Result<Void, Error>) {
         if case let .failure(error) = result {
             createAlert(message: error.localizedDescription)
         }
     }
+    
+    // MARK: Debugger Main View
     
     /// Scan for devices wrapper
     private func scanAction() {
@@ -105,12 +105,12 @@ struct BLEDebuggerDeviceView: View {
     @Binding var bleAlert: String?
     
     /// Create an alert with a Dismiss button
-    private func createAlert(message: String) {
-        bleAlert = message
+    func createAlert(message: String) {
+        self.bleAlert = message
     }
     
     /// Used as closures to create alerts when functions fail
-    private func okOrAlert(result: Result<Void, Error>) {
+    func okOrAlert(result: Result<Void, Error>) {
         if case let .failure(error) = result {
             createAlert(message: error.localizedDescription)
         }
@@ -227,28 +227,16 @@ struct BLEDebuggerCharacView: View {
     @Binding var connection: ConnectionController
     @Binding var bleAlert: String?
     
-    /// Create an alert with a Dismiss button
-    private func createAlert(message: String) {
-        bleAlert = message
-    }
-    
-    /// Used as closures to create alerts when functions fail
-    private func okOrAlert(result: Result<Void, Error>) {
-        if case let .failure(error) = result {
-            createAlert(message: error.localizedDescription)
-        }
-    }
-    
     // MARK: Characteristic View
     var body: some View {
         VStack {
             ScrollView {
                 LazyVStack {
-                    OperationsView(charac: Binding($characteristic)!)
+                    OperationsView(connection: $connection, characteristic: Binding($characteristic)!, bleAlert: $bleAlert)
                 }
             }
         }
-        .navigationTitle(Text("Characteristic"))
+        .navigationTitle(Text("Characteristic Operations"))
     }
 }
 
