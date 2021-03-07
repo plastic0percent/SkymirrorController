@@ -9,6 +9,23 @@ import SwiftUI
 import SwiftyBluetooth
 import CoreBluetooth
 
+// Extension to Binding<String?> to make it possible to be used as bool
+extension Binding where Value == String? {
+    func isShown() -> Binding<Bool> {
+        return Binding<Bool>(
+            get: {
+                if case .some(_) = self.wrappedValue {
+                    return true
+                }
+                return false
+            },
+            set: {
+                self.wrappedValue = $0 ? "Unknown Error" : nil
+            }
+        )
+    }
+}
+
 struct ContentView: View {
     // Whether the fish repeller beeper is on
     @State private var fishRepellerOn = false
@@ -24,10 +41,8 @@ struct ContentView: View {
     @State private var isTurningEditing = false
     // Current-set turing position
     @State private var turningVal = 38.5
-    // Whether an Alert relating to BLE is shown
-    @State private var isShowBleAlert = false;
-    // The Alert message
-    @State private var bleAlertMsg: String = "";
+    // Whether an Alert relating to BLE is shown and its content
+    @State private var bleAlert: String? = nil
     // Whether the Scan pad is shown
     @State private var isShowScanPad = true;
     // Whether the log is shown
@@ -43,8 +58,7 @@ struct ContentView: View {
     
     /// Create an alert with a Dismiss button
     private func createAlert(message: String) {
-        isShowBleAlert = true
-        bleAlertMsg = message
+        bleAlert = message
     }
     
     /// Used as closures to create alerts when functions fail
@@ -55,7 +69,7 @@ struct ContentView: View {
     }
     
     /// Convert functions with a completion callback to simple functions which alerts on failure
-    private func wrapperAlertCb(origFunc: @escaping (_ completion: @escaping ConnectionCallback) -> Void) -> (() -> Void) {
+    public func wrapperAlertCb(origFunc: @escaping (_ completion: @escaping ConnectionCallback) -> Void) -> (() -> Void) {
         return {
             origFunc(self.okOrAlert)
         }
@@ -257,7 +271,7 @@ struct ContentView: View {
                     HStack {
                         Spacer()
                         // Go to BLE debugger
-                        NavigationLink("Debugger", destination: BLEDebuggerMainView())
+                        NavigationLink("Debugger", destination: BLEDebuggerMainView(bleAlert: $bleAlert))
                         Spacer()
                         // Calibrate sensor
                         Button(action: wrapperAlertCb(origFunc: skymirrorController.calibrate)) {
@@ -294,12 +308,6 @@ struct ContentView: View {
                     Text("Copyright \u{00a9} 2021, Plastic 0%. All rights reserved.")
                         .font(.footnote)
                         .foregroundColor(.gray)
-                }.alert(isPresented: $isShowBleAlert) { () -> Alert in
-                    let button = Alert.Button.default(Text("Dismiss"))
-                    return Alert(title: Text("BLE Warning"),
-                                 message: Text(bleAlertMsg),
-                                 dismissButton: button
-                    )
                 }
             }
             .navigationBarTitle(Text("Skymirror Controller"), displayMode: .inline)
@@ -314,10 +322,17 @@ struct ContentView: View {
                                         }
                                     }
             )
-            .onDisappear() {
+            .onDisappear {
                 // Disconnect pheriherals on disappear
                 self.skymirrorController.disconnect(completion: okOrAlert)
             }
+        }
+        .alert(isPresented: $bleAlert.isShown()) { () -> Alert in
+            let button = Alert.Button.default(Text("Dismiss"))
+            return Alert(title: Text("BLE Warning"),
+                         message: Text(bleAlert!),
+                         dismissButton: button
+            )
         }
     }
 }

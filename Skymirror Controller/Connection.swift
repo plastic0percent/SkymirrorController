@@ -60,6 +60,44 @@ class ConnectionController {
         self.usingPeripheral = peripheral
     }
     
+    /// Connect to a peripheral and set appropriate variables
+    func connect(completion: @escaping ConnectionCallback) {
+        if usingPeripheral == nil {
+            return completion(.failure(ConnectionError.noDeviceError))
+        }
+        usingPeripheral!.connect(withTimeout: 15, completion: completion)
+    }
+    
+    /// Scan for services
+    func scanServices(completion: @escaping (_ result: Result<[CBService], Error>) -> Void) {
+        if usingPeripheral == nil {
+            return completion(.failure(ConnectionError.noDeviceError))
+        }
+        self.usingPeripheral!.discoverServices(withUUIDs: nil) { result in
+            switch result {
+            case .success(let services):
+                return completion(.success(services))
+            case .failure(let error):
+                return completion(.failure(error))
+            }
+        }
+    }
+    
+    /// Scan for characteristics
+    func scanCharacs(fromServiceWithUUID: String, completion: @escaping (_ result: Result<[CBCharacteristic], Error>) -> Void) {
+        if usingPeripheral == nil {
+            return completion(.failure(ConnectionError.noDeviceError))
+        }
+        self.usingPeripheral!.discoverCharacteristics(withUUIDs: nil, ofServiceWithUUID: fromServiceWithUUID) { result in
+            switch result {
+            case .success(let services):
+                return completion(.success(services))
+            case .failure(let error):
+                return completion(.failure(error))
+            }
+        }
+    }
+    
     /// Register notification
     func addNotify(ofCharacWithUUID: String,
                    fromServiceWithUUID: String,
@@ -90,14 +128,6 @@ class ConnectionController {
             print("Notification: \(result)")
         }
         return completion(.success(()))
-    }
-    
-    /// Connect to a peripheral and set appropriate variables
-    func connect(completion: @escaping ConnectionCallback) {
-        if usingPeripheral == nil {
-            return completion(.failure(ConnectionError.noDeviceError))
-        }
-        usingPeripheral!.connect(withTimeout: 15, completion: completion)
     }
     
     /// Disconnect the device

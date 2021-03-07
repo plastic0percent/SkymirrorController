@@ -16,6 +16,7 @@
 		F88AA42625F31D300048F68C /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88AA42525F31D300048F68C /* Connection.swift */; };
 		F88AA42A25F31F120048F68C /* SkymirrorAspects.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88AA42925F31F120048F68C /* SkymirrorAspects.swift */; };
 		F89BC97E25F446BE00D61E27 /* BLEDebuggerViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89BC97D25F446BE00D61E27 /* BLEDebuggerViews.swift */; };
+		F89BC98725F4D40200D61E27 /* BLEDebuggerOperations.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89BC98625F4D40100D61E27 /* BLEDebuggerOperations.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +30,7 @@
 		F88AA42525F31D300048F68C /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		F88AA42925F31F120048F68C /* SkymirrorAspects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkymirrorAspects.swift; sourceTree = "<group>"; };
 		F89BC97D25F446BE00D61E27 /* BLEDebuggerViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEDebuggerViews.swift; sourceTree = "<group>"; };
+		F89BC98625F4D40100D61E27 /* BLEDebuggerOperations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEDebuggerOperations.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +73,7 @@
 				F88AA42525F31D300048F68C /* Connection.swift */,
 				F88AA42925F31F120048F68C /* SkymirrorAspects.swift */,
 				F89BC97D25F446BE00D61E27 /* BLEDebuggerViews.swift */,
+				F89BC98625F4D40100D61E27 /* BLEDebuggerOperations.swift */,
 			);
 			path = "Skymirror Controller";
 			sourceTree = "<group>";
@@ -163,6 +166,7 @@
 				F88AA3FA25F1F2170048F68C /* ContentView.swift in Sources */,
 				F89BC97E25F446BE00D61E27 /* BLEDebuggerViews.swift in Sources */,
 				F88AA42625F31D300048F68C /* Connection.swift in Sources */,
+				F89BC98725F4D40200D61E27 /* BLEDebuggerOperations.swift in Sources */,
 				F88AA42A25F31F120048F68C /* SkymirrorAspects.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

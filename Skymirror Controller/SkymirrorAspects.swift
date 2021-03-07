@@ -240,10 +240,10 @@ class SkymirrorController {
         var returnValue: [(String, String)] = []
         let statusTypes = [
             ("Time", "time"),
-            ("Acceleration \u{33a8}", "accel"),
-            ("Speed \u{33a7}", "speed"),
+            ("Acceleration m/s\u{00b2}", "accel"),
+            ("Speed m/s", "speed"),
             ("Displacement m", "displ"),
-            ("Water Pressure \u{33aa}", "pressure"),
+            ("Water Pressure kPa", "pressure"),
             ("Water Depth m", "depth"),
             ("Latitude N", "lat"),
             ("Longitude E", "lon")
