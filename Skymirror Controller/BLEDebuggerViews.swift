@@ -32,6 +32,9 @@ struct BLEDebuggerMainView: View {
     
     /// Scan for devices wrapper
     private func scanAction() {
+        // First clear all items
+        foundDevices.removeAll(keepingCapacity: true)
+        // And scan
         connection.scan(stateChange: {result in
             switch result {
             case .success(let item):
@@ -60,8 +63,17 @@ struct BLEDebuggerMainView: View {
                         let rssiString = foundDevices[$0]!.2 == nil ? "unknown" : "\(foundDevices[$0]!.2!)"
                         Button(action: {
                             connection.setPeripheral(peripheral: peripheral)
-                            connection.connect(completion: okOrAlert)
-                            isLinkActive = true
+                            connection.connect(completion: {result in
+                                switch result {
+                                case .success:
+                                    // Go to Services page
+                                    isLinkActive = true
+                                    break
+                                case .failure(let error):
+                                    createAlert(message: error.localizedDescription)
+                                    break
+                                }
+                            })
                         }, label: {
                             // Show device information
                             HStack {
@@ -90,6 +102,10 @@ struct BLEDebuggerMainView: View {
             }
         }
         .navigationTitle(Text("BLE Debugger"))
+        .onAppear {
+            // If leaving from the previous view, disconnect everything
+            connection.disconnect(completion: okOrAlert)
+        }
     }
 }
 
@@ -216,9 +232,6 @@ struct BLEDebuggerDeviceView: View {
                     break
                 }
             }
-        }
-        .onDisappear() {
-            connection.disconnect(completion: okOrAlert)
         }
     }
 }

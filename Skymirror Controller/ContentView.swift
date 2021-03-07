@@ -92,6 +92,7 @@ struct ContentView: View {
     }
     
     private func scanAction() {
+        foundDevices.removeAll(keepingCapacity: true)
         skymirrorController.scan(stateChange: {result in
             switch result {
             case .success(let item):
