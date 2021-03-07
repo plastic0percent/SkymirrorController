@@ -274,7 +274,7 @@ struct OperationsView: View {
     @Binding var bleAlert: String?
     
     @ViewBuilder
-    private func viewSelector(prop: CharacProp) -> some View{
+    private func viewSelector(prop: CharacProp) -> some View {
         switch prop {
         case .broadcast:
             BroadcastOperationView(
@@ -327,16 +327,13 @@ struct OperationsView: View {
         }
     }
     
-    @ViewBuilder
-    private func viewGenerate() -> some View {
-        let items = characteristic.properties.forEachProp(action: viewSelector)
-        ForEach(0..<items.count) {
-            items[$0]
-        }
-    }
-    
     var body: some View {
-        viewGenerate()
+        ScrollView {
+            let props = characteristic.properties.forEachProp(action: {prop in return (UUID(), prop)})
+            ForEach(props, id: \.0) {
+                viewSelector(prop: $0.1)
+            }
+        }
     }
 }
 
