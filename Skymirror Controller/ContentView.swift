@@ -53,7 +53,7 @@ struct ContentView: View {
     @State private var foundDevices = [UUID: Peripheral]()
     // Status of Skymirror
     @State private var statusList: [(String, String)] = []
-    private var skymirrorController = SkymirrorController()
+    @State private var skymirrorController = SkymirrorController()
     
     // MARK: Methods start here
     
@@ -128,6 +128,18 @@ struct ContentView: View {
     }
     
     // MARK: View starts here
+    
+    var titleTrailingItems: some View {
+        // Connection selection
+        Button(action: {
+            isShowScanPad = !isShowScanPad
+        }) {
+            HStack {
+                Text(isShowScanPad ? "Hide" : "Connect")
+                Image(systemName: "iphone.radiowaves.left.and.right")
+            }
+        }
+    }
     
     var body: some View {
         NavigationView {
@@ -286,22 +298,12 @@ struct ContentView: View {
                         }
                         Spacer()
                         // Show log
-                        Button(action: {isShowLogPad = !isShowLogPad}, label: {
-                            Text("Toggle log")
-                        })
+                        NavigationLink(
+                            "Log",
+                            destination: ContentLoggerView(logs: Binding($skymirrorController.connection.automaticLog)!)
+                        )
                         Spacer()
                     }
-                }
-                
-                // MARK: Log pad
-                if isShowLogPad {
-                    VStack {
-                        Divider()
-                        ScrollView {
-                            Text(self.skymirrorController.logBuffer)
-                        }
-                    }
-                    
                 }
                 
                 // MARK: Footnote
@@ -311,19 +313,10 @@ struct ContentView: View {
                         .font(.footnote)
                         .foregroundColor(.gray)
                 }
+                Spacer()
             }
             .navigationBarTitle(Text("Skymirror Controller"), displayMode: .inline)
-            .navigationBarItems(trailing:
-                                    // Connection selection
-                                    Button(action: {
-                                        isShowScanPad = !isShowScanPad
-                                    }) {
-                                        HStack {
-                                            Text(isShowScanPad ? "Hide" : "Connect")
-                                            Image(systemName: "iphone.radiowaves.left.and.right")
-                                        }
-                                    }
-            )
+            .navigationBarItems(trailing: titleTrailingItems)
             .onDisappear {
                 // Disconnect pheriherals on disappear
                 self.skymirrorController.disconnect(completion: okOrAlert)

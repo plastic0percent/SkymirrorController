@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 import SwiftyBluetooth
 
 enum DataError: Error {
@@ -55,17 +56,13 @@ struct DataResponse: Decodable {
 
 class SkymirrorController {
     // BLE Connection
-    public var connection = ConnectionController()
+    public var connection = ConnectionController(ifLog: true)
     // Payload from BLE
     private var receivedPayload = Data.init()
     // Which payload is expected, 0 for status, 1 for image
     private var expectedPayload: ExpectedPayload = .statusData;
     // Status payload, from receivedPayload
     private var decodedStatusPayload = DataResponse()
-    // Log buffer
-    public var logBuffer = ""
-    // Whether is connected
-    public var isConnected = false
     
     /// Scan for devices, getting only an ID and the peripheral
     func scan(stateChange: @escaping (Result<(UUID, Peripheral), Error>) -> Void) {
@@ -100,11 +97,7 @@ class SkymirrorController {
                                 // If no start symbol, drop this whole message
                                 // Process payload, remove things before SOT and after EOT
                                 let processedPayload = self.receivedPayload[stxpos!+1..<etxpos!]
-                                // The data before STX might be log
-                                let otherData = self.receivedPayload[0..<stxpos!]
                                 print("Received data: \(processedPayload.base64EncodedString())")
-                                // Write log buffer
-                                self.logBuffer.append(String.init(data: otherData, encoding: .utf8) ?? "")
                                 // Process actual payload
                                 switch self.expectedPayload {
                                 // XXX: Possible data race when setting payload
@@ -140,8 +133,7 @@ class SkymirrorController {
     
     /// Write data to the FFE2 characteristc
     func write(cmd: UInt8, arg: UInt8, completion: @escaping ConnectionCallback) {
-        let payload: UInt16 = UInt16(cmd)<<8 + UInt16(arg)
-        let payloadData = withUnsafeBytes(of: payload.bigEndian) { Data($0) }
+        let payloadData = Data([cmd, arg])
         connection.write(data: payloadData, ofCharacWithUUID: "FFE2", fromServiceWithUUID: "FFE0", completion: completion)
     }
     
@@ -172,13 +164,13 @@ class SkymirrorController {
     
     /// Request status information
     func requestInfo(completion: @escaping ConnectionCallback) {
-        expectedPayload = .statusData;
+        self.expectedPayload = .statusData;
         self.write(cmd: 0x02, arg: 0x00, completion: completion)
     }
     
     /// Request image
     func requestImage(completion: @escaping ConnectionCallback) {
-        expectedPayload = .imageData;
+        self.expectedPayload = .imageData;
         self.write(cmd: 0x01, arg: 0x01, completion: completion)
     }
     

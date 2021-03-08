@@ -35,6 +35,13 @@ func getDeviceName(peripheral: Peripheral) -> String {
 class ConnectionController {
     // The Peripheral in use
     private var usingPeripheral: Peripheral? = nil
+    public var automaticLog: [BLELogEntry]?
+    // Lock for writer
+    let writeSemaphore = DispatchSemaphore(value: 1)
+    
+    init(ifLog: Bool = false) {
+        self.automaticLog = ifLog ? [] : nil
+    }
     
     /// Scan all devices, whenever state changes, stateChange is called
     func scan(stateChange: @escaping (Result<(Peripheral, [String: Any], Int?), Error>) -> Void) {
@@ -62,15 +69,15 @@ class ConnectionController {
     
     /// Connect to a peripheral and set appropriate variables
     func connect(completion: @escaping ConnectionCallback) {
-        if usingPeripheral == nil {
+        if self.usingPeripheral == nil {
             return completion(.failure(ConnectionError.noDeviceError))
         }
-        usingPeripheral!.connect(withTimeout: 15, completion: completion)
+        self.usingPeripheral!.connect(withTimeout: 15, completion: completion)
     }
     
     /// Scan for services
     func scanServices(completion: @escaping (_ result: Result<[CBService], Error>) -> Void) {
-        if usingPeripheral == nil {
+        if self.usingPeripheral == nil {
             return completion(.failure(ConnectionError.noDeviceError))
         }
         self.usingPeripheral!.discoverServices(withUUIDs: nil) { result in
@@ -85,7 +92,7 @@ class ConnectionController {
     
     /// Scan for characteristics
     func scanCharacs(fromServiceWithUUID: String, completion: @escaping (_ result: Result<[CBCharacteristic], Error>) -> Void) {
-        if usingPeripheral == nil {
+        if self.usingPeripheral == nil {
             return completion(.failure(ConnectionError.noDeviceError))
         }
         self.usingPeripheral!.discoverCharacteristics(withUUIDs: nil, ofServiceWithUUID: fromServiceWithUUID) { result in
@@ -103,24 +110,25 @@ class ConnectionController {
                    fromServiceWithUUID: String,
                    completion: @escaping ConnectionCallback,
                    onReceive: @escaping (_ value: Data) -> Void) {
-        if usingPeripheral == nil {
+        if self.usingPeripheral == nil {
             return completion(.failure(ConnectionError.noDeviceError))
         }
         // Add BLE notification callback
         NotificationCenter.default.addObserver(forName: Peripheral.PeripheralCharacteristicValueUpdate,
-                                               object: usingPeripheral,
+                                               object: self.usingPeripheral,
                                                queue: nil) { notification in
             let charac = notification.userInfo!["characteristic"] as! CBCharacteristic
             if let error = notification.userInfo?["error"] as? SBError {
                 return completion(.failure(error))
             }
             if charac.isNotifying {
+                self.addToLog(data: charac.value!)
                 onReceive(charac.value!)
             }
         }
         
         // Enable notification
-        usingPeripheral!.setNotifyValue(
+        self.usingPeripheral!.setNotifyValue(
             toEnabled: true,
             forCharacWithUUID: ofCharacWithUUID,
             ofServiceWithUUID: fromServiceWithUUID
@@ -132,31 +140,49 @@ class ConnectionController {
     
     /// Disconnect the device
     func disconnect(completion: @escaping ConnectionCallback) {
-        usingPeripheral?.disconnect(completion: completion)
+        self.usingPeripheral?.disconnect(completion: completion)
+    }
+    
+    /// Add to some data to BLE ContentLogger refering to this Peripheral
+    func addToLog(data: Data) {
+        self.automaticLog?.append(BLELogEntry(
+            deviceUUID: usingPeripheral!.identifier,
+            characUUID: usingPeripheral!.identifier,
+            content: data
+        ))
     }
     
     /// Read data from the device
     func read(ofCharacWithUUID: String, fromServiceWithUUID: String, completion: @escaping (_ data: Result<Data, Error>) -> Void) {
-        if usingPeripheral == nil {
+        if self.usingPeripheral == nil {
             return completion(.failure(ConnectionError.noDeviceError))
         }
-        usingPeripheral!.readValue(
+        self.usingPeripheral!.readValue(
             ofCharacWithUUID: ofCharacWithUUID,
             fromServiceWithUUID: fromServiceWithUUID,
-            completion: completion
+            completion: {result in
+                if case let .success(data) = result {
+                    self.addToLog(data: data)
+                }
+                completion(result)
+            }
         )
     }
     
     /// Write data to the device
     func write(data: Data, ofCharacWithUUID: String, fromServiceWithUUID: String, completion: @escaping ConnectionCallback) {
-        if usingPeripheral == nil {
+        if self.usingPeripheral == nil {
             return completion(.failure(ConnectionError.noDeviceError))
         }
+        self.writeSemaphore.wait()
         usingPeripheral!.writeValue(
             ofCharacWithUUID: ofCharacWithUUID,
             fromServiceWithUUID: fromServiceWithUUID,
             value: data,
-            completion: completion
+            completion: {result in
+                self.writeSemaphore.signal()
+                completion(result)
+            }
         )
     }
 }

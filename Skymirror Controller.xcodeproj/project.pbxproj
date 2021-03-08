@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F819A4C525F5C1A10093A48E /* ContentLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F819A4C425F5C1A10093A48E /* ContentLogger.swift */; };
+		F819A4C925F605DD0093A48E /* ContentLoggerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F819A4C825F605DD0093A48E /* ContentLoggerView.swift */; };
 		F88AA3F625F1F2170048F68C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88AA3F525F1F2170048F68C /* AppDelegate.swift */; };
 		F88AA3F825F1F2170048F68C /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88AA3F725F1F2170048F68C /* SceneDelegate.swift */; };
 		F88AA3FA25F1F2170048F68C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88AA3F925F1F2170048F68C /* ContentView.swift */; };
@@ -20,6 +22,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		F819A4C425F5C1A10093A48E /* ContentLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentLogger.swift; sourceTree = "<group>"; };
+		F819A4C825F605DD0093A48E /* ContentLoggerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentLoggerView.swift; sourceTree = "<group>"; };
 		F88AA3F225F1F2170048F68C /* Skymirror Controller.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Skymirror Controller.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F88AA3F525F1F2170048F68C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		F88AA3F725F1F2170048F68C /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -74,6 +78,8 @@
 				F88AA42925F31F120048F68C /* SkymirrorAspects.swift */,
 				F89BC97D25F446BE00D61E27 /* BLEDebuggerViews.swift */,
 				F89BC98625F4D40100D61E27 /* BLEDebuggerOperations.swift */,
+				F819A4C425F5C1A10093A48E /* ContentLogger.swift */,
+				F819A4C825F605DD0093A48E /* ContentLoggerView.swift */,
 			);
 			path = "Skymirror Controller";
 			sourceTree = "<group>";
@@ -163,11 +169,13 @@
 			files = (
 				F88AA3F625F1F2170048F68C /* AppDelegate.swift in Sources */,
 				F88AA3F825F1F2170048F68C /* SceneDelegate.swift in Sources */,
+				F819A4C525F5C1A10093A48E /* ContentLogger.swift in Sources */,
 				F88AA3FA25F1F2170048F68C /* ContentView.swift in Sources */,
 				F89BC97E25F446BE00D61E27 /* BLEDebuggerViews.swift in Sources */,
 				F88AA42625F31D300048F68C /* Connection.swift in Sources */,
 				F89BC98725F4D40200D61E27 /* BLEDebuggerOperations.swift in Sources */,
 				F88AA42A25F31F120048F68C /* SkymirrorAspects.swift in Sources */,
+				F819A4C925F605DD0093A48E /* ContentLoggerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

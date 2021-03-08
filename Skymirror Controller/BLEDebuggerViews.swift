@@ -10,7 +10,7 @@ import SwiftyBluetooth
 import CoreBluetooth
 
 struct BLEDebuggerMainView: View {
-    @State private var connection = ConnectionController()
+    @State private var connection = ConnectionController(ifLog: true)
     @State private var foundDevices = [UUID: (Peripheral, [String: Any], Int?)]()
     // Whether the link to the next view is active
     @State private var isLinkActive = false
@@ -101,7 +101,7 @@ struct BLEDebuggerMainView: View {
                 }
             }
         }
-        .navigationTitle(Text("BLE Debugger"))
+        .navigationBarTitle(Text("BLE Debugger"), displayMode: .inline)
         .onAppear {
             // If leaving from the previous view, disconnect everything
             connection.disconnect(completion: okOrAlert)
@@ -132,7 +132,62 @@ struct BLEDebuggerDeviceView: View {
         }
     }
     
+    // Make character view since integrating it will make it too complicated
+    @ViewBuilder
+    func characView(characs: [CBCharacteristic]) -> some View {
+        ForEach(characs, id: \.self) {
+            let charac = $0
+            let characName = charac.CBUUIDRepresentation
+            let characUUID = charac.CBUUIDRepresentation.uuidString
+            let characProp = charac.properties
+            let characVal = charac.value
+            
+            Button(action: {
+                self.selectedCharac = charac
+                isLinkActive = true
+            }, label: {
+                VStack(alignment: .leading) {
+                    // First row: name
+                    HStack {
+                        if "\(characName)" != characUUID {
+                            Text("Name: \(characName)")
+                                .font(.system(size: 17))
+                        }
+                    }
+                    // Second row: UUID
+                    HStack {
+                        Text("UUID: \(characUUID)")
+                            .font(.system(size: 12, weight: .light))
+                    }
+                    // Second row: properties and values
+                    HStack {
+                        Text("Properties: \(characProp.interpretProperties())")
+                            .font(.system(size: 12, weight: .light))
+                        if characVal != nil {
+                            let strVal = String.init(data: characVal!, encoding: .utf8)
+                            if strVal != nil {
+                                Text("Value: \(strVal!)")
+                                    .font(.system(size: 12, weight: .light))
+                            }
+                        }
+                    }
+                }
+            })
+            Divider()
+            Spacer()
+        }
+    }
+    
     // MARK: Device View
+    
+    var titleTrailingItems: some View {
+        // Show log
+        NavigationLink(
+            "Log",
+            destination: ContentLoggerView(logs: Binding($connection.automaticLog)!)
+        )
+    }
+    
     var body: some View {
         VStack {
             ScrollView {
@@ -147,55 +202,21 @@ struct BLEDebuggerDeviceView: View {
                         // Show service information
                         HStack {
                             Text("\(serviceName)" != serviceUUID ? "\(serviceName) [\(serviceUUID)]:" : "Service [\(serviceUUID)]:")
-                                .font(.system(size: 15))
+                                .font(.system(size: 13, weight: .ultraLight))
                             Spacer()
                         }
-                        
                         Divider()
-                        ForEach(characs, id: \.self) {
-                            let charac = $0
-                            let characName = charac.CBUUIDRepresentation
-                            let characUUID = charac.CBUUIDRepresentation.uuidString
-                            let characProp = charac.properties
-                            let characVal = charac.value
-                            
-                            Button(action: {
-                                self.selectedCharac = charac
-                                isLinkActive = true
-                            }, label: {
-                                VStack {
-                                    // First row: name and UUID
-                                    HStack(alignment: .center) {
-                                        if "\(characName)" != characUUID {
-                                            Text("Name: \(characName)")
-                                                .font(.system(size: 17))
-                                        }
-                                        Spacer()
-                                        Text("UUID: \(characUUID)")
-                                            .font(.system(size: 12, weight: .light))
-                                    }
-                                    // Second row: properties and values
-                                    HStack {
-                                        Text("Properties: \(characProp.interpretProperties())")
-                                            .font(.system(size: 12, weight: .light))
-                                        if characVal != nil {
-                                            let strVal = String.init(data: characVal!, encoding: .utf8)
-                                            if strVal != nil {
-                                                Text("Value: \(strVal!)")
-                                                    .font(.system(size: 12, weight: .light))
-                                            }
-                                        }
-                                        Spacer()
-                                    }
-                                }
-                            })
-                            Divider()
-                            Spacer()
-                        }
+                        characView(characs: characs)
+                        
                     }
                     // Put the navigation link to the background
                     .background(
-                        NavigationLink(destination: BLEDebuggerCharacView(characteristic: $selectedCharac, connection: $connection, bleAlert: $bleAlert),
+                        NavigationLink(destination: BLEDebuggerCharacView(
+                                        characteristic: $selectedCharac,
+                                        connection: $connection,
+                                        bleAlert: $bleAlert,
+                                        receivedHistory: Binding($connection.automaticLog)!
+                            ),
                                        isActive: $isLinkActive) {
                             EmptyView()
                         }
@@ -204,7 +225,8 @@ struct BLEDebuggerDeviceView: View {
                 }
             }
         }
-        .navigationTitle(Text("Services and Characteristics"))
+        .navigationBarTitle(Text("Services and Characteristics"), displayMode: .inline)
+        .navigationBarItems(trailing: titleTrailingItems)
         .onAppear {
             // First clear all flags
             isLinkActive = false
@@ -241,8 +263,15 @@ struct BLEDebuggerCharacView: View {
     @Binding var characteristic: CBCharacteristic?
     @Binding var connection: ConnectionController
     @Binding var bleAlert: String?
+    @Binding var receivedHistory: [BLELogEntry]
     
     // MARK: Characteristic View
+    
+    var titleTrailingItems: some View {
+        // Show log
+        NavigationLink("Log", destination: ContentLoggerView(logs: $receivedHistory))
+    }
+    
     var body: some View {
         VStack {
             ScrollView {
@@ -251,7 +280,8 @@ struct BLEDebuggerCharacView: View {
                 }
             }
         }
-        .navigationTitle(Text("Characteristic Operations"))
+        .navigationBarTitle(Text("Characteristic Operations"), displayMode: .inline)
+        .navigationBarItems(trailing: titleTrailingItems)
     }
 }
 
