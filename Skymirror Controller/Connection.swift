@@ -141,6 +141,8 @@ class ConnectionController {
     /// Disconnect the device
     func disconnect(completion: @escaping ConnectionCallback) {
         self.usingPeripheral?.disconnect(completion: completion)
+        // Avoid writing to disconnected devices
+        self.usingPeripheral = nil
     }
     
     /// Add to some data to BLE ContentLogger refering to this Peripheral
