@@ -41,13 +41,13 @@ struct ContentView: View {
     // Whether direction is being edited
     @State private var isTurningEditing = false
     // Current-set turing position
-    @State private var turningVal = 38.5
+    @State private var turningVal = 15.0
     // Whether an Alert relating to BLE is shown and its content
     @State private var bleAlert: String? = nil
     // Whether the Scan pad is shown
-    @State private var isShowScanPad = true;
-    // Whether the log is shown
-    @State private var isShowLogPad = false;
+    @State private var isShowScanPad = true
+    // Whether the link to debugger is activated
+    @State private var isDebuggerActive = false
     // Dictionary of (UUID: Peripheral)
     // Dictionary is used to avoid duplicate results
     @State private var foundDevices = [UUID: Peripheral]()
@@ -59,13 +59,13 @@ struct ContentView: View {
     
     /// Create an alert with a Dismiss button
     private func createAlert(message: String) {
-        bleAlert = message
+        self.bleAlert = message
     }
     
     /// Used as closures to create alerts when functions fail
     private func okOrAlert(result: Result<Void, Error>) {
         if case let .failure(error) = result {
-            createAlert(message: error.localizedDescription)
+            self.createAlert(message: error.localizedDescription)
         }
     }
     
@@ -92,8 +92,8 @@ struct ContentView: View {
     }
     
     private func scanAction() {
-        foundDevices.removeAll(keepingCapacity: true)
-        skymirrorController.scan(stateChange: {result in
+        self.foundDevices.removeAll(keepingCapacity: true)
+        self.skymirrorController.scan(stateChange: {result in
             switch result {
             case .success(let item):
                 foundDevices[item.0] = item.1
@@ -105,7 +105,9 @@ struct ContentView: View {
     
     private func createConnectAction(peripheral: Peripheral) -> (() -> Void) {
         return {
-            skymirrorController.connect(
+            // First disconnect any previously-conected periperals
+            self.skymirrorController.disconnect(completion: okOrAlert)
+            self.skymirrorController.connect(
                 peripheral: peripheral,
                 completion: {result in
                     switch result {
@@ -263,7 +265,7 @@ struct ContentView: View {
                         Text("L")
                         Slider(
                             value: $turningVal,
-                            in: 23...54,
+                            in: 0...30,
                             onEditingChanged: { editing in
                                 isTurningEditing = editing
                                 if editing == false {
@@ -284,8 +286,19 @@ struct ContentView: View {
                     Divider()
                     HStack {
                         Spacer()
-                        // Go to BLE debugger
-                        NavigationLink("Debugger", destination: BLEDebuggerMainView(bleAlert: $bleAlert))
+                        // Go to BLE debugger, this is wrapped with a button to ensure
+                        // peripherals are getting disconnected
+                        Button(action: {
+                            self.skymirrorController.disconnect(completion: okOrAlert)
+                            self.isDebuggerActive = true
+                        }) {
+                            Text("Debugger")
+                        }
+                        .background(
+                            NavigationLink(destination: BLEDebuggerMainView(bleAlert: $bleAlert), isActive: $isDebuggerActive) {
+                                EmptyView()
+                            }
+                        )
                         Spacer()
                         // Calibrate sensor
                         Button(action: wrapperAlertCb(origFunc: skymirrorController.calibrate)) {
@@ -293,7 +306,18 @@ struct ContentView: View {
                         }
                         Spacer()
                         // Re-setup
-                        Button(action: wrapperAlertCb(origFunc: skymirrorController.boardSetup)) {
+                        Button(action: {
+                            skymirrorController.boardSetup(completion: {result in
+                                switch (result) {
+                                case .success:
+                                    freqVal = 0.0
+                                    motorVal = 1500.0
+                                    turningVal = 15.0
+                                case .failure(let error):
+                                    createAlert(message: error.localizedDescription)
+                                }
+                            })
+                        }) {
                             Text("Setup")
                         }
                         Spacer()
@@ -317,9 +341,8 @@ struct ContentView: View {
             }
             .navigationBarTitle(Text("Skymirror Controller"), displayMode: .inline)
             .navigationBarItems(trailing: titleTrailingItems)
-            .onDisappear {
-                // Disconnect pheriherals on disappear
-                self.skymirrorController.disconnect(completion: okOrAlert)
+            .onAppear {
+                self.isDebuggerActive = false
             }
         }
         .alert(isPresented: $bleAlert.isShown()) { () -> Alert in

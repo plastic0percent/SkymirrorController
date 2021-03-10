@@ -80,12 +80,15 @@ struct BLEDebuggerMainView: View {
                                 VStack(alignment: .leading) {
                                     Text("Name: \(peripheral.name ?? "unknown")")
                                         .font(.system(size: 17))
+                                        .padding(.leading)
                                     Text("UUID: \(peripheral.identifier.uuidString)")
                                         .font(.system(size: 12, weight: .light))
+                                        .padding(.leading)
                                 }
                                 Spacer()
                                 Text("RSSI: \(rssiString)")
                                     .font(.system(size: 11))
+                                    .padding(.trailing)
                             }
                         })
                         Divider()
@@ -153,12 +156,16 @@ struct BLEDebuggerDeviceView: View {
                             Text("Name: \(characName)")
                                 .font(.system(size: 17))
                         }
+                        Spacer()
                     }
+                    .padding(.leading)
                     // Second row: UUID
                     HStack {
                         Text("UUID: \(characUUID)")
                             .font(.system(size: 12, weight: .light))
+                        Spacer()
                     }
+                    .padding(.leading)
                     // Second row: properties and values
                     HStack {
                         Text("Properties: \(characProp.interpretProperties())")
@@ -170,7 +177,9 @@ struct BLEDebuggerDeviceView: View {
                                     .font(.system(size: 12, weight: .light))
                             }
                         }
+                        Spacer()
                     }
+                    .padding(.leading)
                 }
             })
             Divider()
@@ -203,6 +212,7 @@ struct BLEDebuggerDeviceView: View {
                         HStack {
                             Text("\(serviceName)" != serviceUUID ? "\(serviceName) [\(serviceUUID)]:" : "Service [\(serviceUUID)]:")
                                 .font(.system(size: 13, weight: .ultraLight))
+                                .padding(.leading)
                             Spacer()
                         }
                         Divider()
@@ -212,12 +222,12 @@ struct BLEDebuggerDeviceView: View {
                     // Put the navigation link to the background
                     .background(
                         NavigationLink(destination: BLEDebuggerCharacView(
-                                        characteristic: $selectedCharac,
-                                        connection: $connection,
-                                        bleAlert: $bleAlert,
-                                        receivedHistory: Binding($connection.automaticLog)!
-                            ),
-                                       isActive: $isLinkActive) {
+                            characteristic: $selectedCharac,
+                            connection: $connection,
+                            bleAlert: $bleAlert,
+                            receivedHistory: Binding($connection.automaticLog)!
+                        ),
+                        isActive: $isLinkActive) {
                             EmptyView()
                         }
                         .hidden()
@@ -277,6 +287,7 @@ struct BLEDebuggerCharacView: View {
             ScrollView {
                 LazyVStack {
                     OperationsView(connection: $connection, characteristic: Binding($characteristic)!, bleAlert: $bleAlert)
+                    Divider()
                 }
             }
         }

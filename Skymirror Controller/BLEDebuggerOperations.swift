@@ -170,7 +170,6 @@ struct ReadOperationView: View {
                 }
                 Spacer()
             }
-            Divider()
         }
     }
 }
@@ -223,7 +222,6 @@ struct WriteOperationView: View {
                 })
                 Spacer()
             }
-            Divider()
         }
     }
 }
