@@ -39,11 +39,22 @@ struct ContentLoggerView: View {
                     let item = $0
                     HStack {
                         Text("[\(item.deviceUUID):\(item.characUUID)]")
+                            .font(.system(size: 13, weight: .ultraLight))
+                            .padding(.leading)
                         Spacer()
-                        Text("\(String.init(data: item.content, encoding: .hex))")
-                        Divider()
-                        Text("\(String.init(data: item.content, encoding: isUTF8 ? .utf8 : .ascii) ?? "")")
                     }
+                    Divider()
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text("\(String.init(data: item.content, encoding: .HEX))")
+                                .font(Font.custom("Courier New", size: 16))
+                            Text("\(String.init(data: item.content, encoding: isUTF8 ? .utf8 : .ascii) ?? "")")
+                                .font(Font.custom("Courier New", size: 16))
+                        }
+                        .padding(.leading)
+                        Spacer()
+                    }
+                    Divider()
                 }
             }
         }

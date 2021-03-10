@@ -24,6 +24,7 @@ enum CharacProp {
 extension String {
     enum ExtendedEncoding {
         case hex
+        case HEX
     }
     
     // https://stackoverflow.com/a/56870030
@@ -47,7 +48,7 @@ extension String {
     }
     
     init(data: Data, encoding: ExtendedEncoding) {
-        self.init(data.map { String(format: "%02hhx", $0) }.joined())
+        self.init(data.map { String(format: encoding == .hex ? "%02hhx" : "%02hhX", $0) }.joined())
     }
 }
 
