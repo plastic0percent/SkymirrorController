@@ -47,8 +47,11 @@ struct BLEDebuggerMainView: View {
 
     var body: some View {
         ScrollView {
-            NavigationLink(destination: BLEDebuggerDeviceView(connection: $connection, bleAlert: $bleAlert),
-                           isActive: $isLinkActive) {
+            NavigationLink(destination: BLEDebuggerDeviceView(
+                connection: $connection,
+                bleAlert: $bleAlert
+            ),
+            isActive: $isLinkActive) {
                 EmptyView()
             }
             LazyVStack {
@@ -111,6 +114,9 @@ struct BLEDebuggerDeviceView: View {
     @State private var isLinkActive = false
     // The selected service
     @State private var selectedCharac: CBCharacteristic?
+    // Whether this is the first entry to this view from BLEDebuggerMainView
+    // The difference is that the post connect actions are only run upon the first entry
+    @State var firstEntry = true
     @Binding var connection: ConnectionController
     @Binding var bleAlert: String?
 
@@ -127,7 +133,9 @@ struct BLEDebuggerDeviceView: View {
     }
 
     /// Post-connect actions
-    private func postConnectActions(characteristcs: [CBCharacteristic]) {
+    private func postConnectActions(
+        characteristcs: [CBCharacteristic]
+    ) {
         for characteristc in characteristcs {
             _ = characteristc.properties.forEachProp(action: {prop in
                 switch prop {
@@ -142,7 +150,7 @@ struct BLEDebuggerDeviceView: View {
                         self.connection.addNotify(
                             ofCharacWithUUID: characUUID,
                             fromServiceWithUUID: serviceUUID,
-                            completion: {_ in }, onReceive: {_ in})
+                            completion: {_ in}, onReceive: {_ in})
                     }
                 default:
                     break
@@ -159,6 +167,7 @@ struct BLEDebuggerDeviceView: View {
         connection.scanServices { result in
             switch result {
             case .success(let servs):
+                var waiting = servs.count
                 for service in servs {
                     connection.scanCharacs(
                         fromServiceWithUUID: service.CBUUIDRepresentation.uuidString,
@@ -166,7 +175,15 @@ struct BLEDebuggerDeviceView: View {
                             switch result {
                             case .success(let characs):
                                 self.services[service.CBUUIDRepresentation.uuidString] = (service, characs)
-                                self.postConnectActions(characteristcs: characs)
+                                if self.firstEntry {
+                                    self.postConnectActions(characteristcs: characs)
+                                    waiting -= 1
+                                }
+                                if waiting == 0 {
+                                    // Make sure the post-connect actions are not run
+                                    // when returning from the peripherals
+                                    self.firstEntry = false
+                                }
                             case .failure(let error):
                                 self.createAlert(message: error.localizedDescription)
                             }
@@ -214,7 +231,13 @@ struct BLEDebuggerDeviceView: View {
                         Text("Properties: \(characProp.interpretProperties())")
                             .font(.system(size: 12, weight: .light))
                         if characVal != nil {
-                            let strVal = String.init(data: characVal!, encoding: .utf8)
+                            let strVal = String.init(
+                                data: characVal!,
+                                encoding: .utf8,
+                                filter: {chr in
+                                    xxdFilter(chr: chr, encoding: .utf8)
+                                }
+                            )
                             if strVal != nil {
                                 Text("Value: \(strVal!)")
                                     .font(.system(size: 12, weight: .light))

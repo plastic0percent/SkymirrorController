@@ -95,7 +95,6 @@ class SkymirrorController {
                                 // If no start symbol, drop this whole message
                                 // Process payload, remove things before SOT and after EOT
                                 let processedPayload = self.receivedPayload[stxpos!+1..<etxpos!]
-                                print("Received data: \(processedPayload.base64EncodedString())")
                                 // Process actual payload
                                 switch self.expectedPayload {
                                 // XXX: Possible data race when setting payload
