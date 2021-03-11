@@ -26,19 +26,19 @@ extension String {
         case hex
         case HEX
     }
-    
+
     // https://stackoverflow.com/a/56870030
-    func data(using encoding:ExtendedEncoding) -> Data? {
+    func data(using encoding: ExtendedEncoding) -> Data? {
         let hexStr = self.dropFirst(self.hasPrefix("0x") ? 2 : 0)
-        
+
         guard hexStr.count % 2 == 0 else { return nil }
-        
+
         var newData = Data(capacity: hexStr.count/2)
-        
+
         var indexIsEven = true
-        for i in hexStr.indices {
+        for idx in hexStr.indices {
             if indexIsEven {
-                let byteRange = i...hexStr.index(after: i)
+                let byteRange = idx...hexStr.index(after: idx)
                 guard let byte = UInt8(hexStr[byteRange], radix: 16) else { return nil }
                 newData.append(byte)
             }
@@ -46,7 +46,7 @@ extension String {
         }
         return newData
     }
-    
+
     init(data: Data, encoding: ExtendedEncoding) {
         self.init(data.map { String(format: encoding == .hex ? "%02hhx" : "%02hhX", $0) }.joined())
     }
@@ -63,7 +63,10 @@ extension CBCharacteristicProperties {
         // The properties
         var prop = self.rawValue
         // Map between property and bit position
-        let types: [CharacProp] = [.broadcast, .read, .writeNoResponse, .write, .notify, .indicate, .signedWrite, .extended]
+        let types: [CharacProp] = [
+            .broadcast, .read, .writeNoResponse, .write,
+            .notify, .indicate, .signedWrite, .extended
+        ]
         while prop != 0 {
             if prop & 0x01 != 0 {
                 result.append(action(types[bitIndex]))
@@ -73,36 +76,28 @@ extension CBCharacteristicProperties {
         }
         return result
     }
-    
+
     /// Interpret CBCharacteristicProperties into descriptive string
     func interpretProperties() -> String {
         var result = String.init()
-        let _ = self.forEachProp(action: {prop in
+        _ = self.forEachProp(action: {prop in
             switch prop {
             case .broadcast:
                 result.append("BC ")
-                break
             case .read:
                 result.append("RD ")
-                break
             case .writeNoResponse:
                 result.append("WW ")
-                break
             case .write:
                 result.append("WR ")
-                break
             case .notify:
                 result.append("NO ")
-                break
             case .indicate:
                 result.append("IN ")
-                break
             case .signedWrite:
                 result.append("SW ")
-                break
             case .extended:
                 result.append("EX ")
-                break
             }
         })
         return result
@@ -113,7 +108,7 @@ struct BroadcastOperationView: View {
     @Binding var connection: ConnectionController
     @Binding var characteristic: CBCharacteristic
     @Binding var bleAlert: String?
-    
+
     var body: some View {
         Text("Broad cast")
     }
@@ -124,19 +119,19 @@ struct ReadOperationView: View {
     @Binding var characteristic: CBCharacteristic
     @Binding var bleAlert: String?
     @State private var result = Data.init()
-    
+
     /// Create an alert with a Dismiss button
     func createAlert(message: String) {
         self.bleAlert = message
     }
-    
+
     /// Used as closures to create alerts when functions fail
     func okOrAlert(result: Result<Void, Error>) {
         if case let .failure(error) = result {
             createAlert(message: error.localizedDescription)
         }
     }
-    
+
     var body: some View {
         VStack {
             // Title
@@ -181,19 +176,19 @@ struct WriteOperationView: View {
     @Binding var connection: ConnectionController
     @Binding var characteristic: CBCharacteristic
     @Binding var bleAlert: String?
-    
+
     /// Create an alert with a Dismiss button
     func createAlert(message: String) {
         self.bleAlert = message
     }
-    
+
     /// Used as closures to create alerts when functions fail
     func okOrAlert(result: Result<Void, Error>) {
         if case let .failure(error) = result {
             createAlert(message: error.localizedDescription)
         }
     }
-    
+
     var body: some View {
         VStack {
             // Title
@@ -231,7 +226,7 @@ struct NotifyOperationView: View {
     @Binding var connection: ConnectionController
     @Binding var characteristic: CBCharacteristic
     @Binding var bleAlert: String?
-    
+
     var body: some View {
         Text("Notify")
     }
@@ -241,7 +236,7 @@ struct IndicateOperationView: View {
     @Binding var connection: ConnectionController
     @Binding var characteristic: CBCharacteristic
     @Binding var bleAlert: String?
-    
+
     var body: some View {
         Text("Indicate")
     }
@@ -251,7 +246,7 @@ struct SignedWriteOperationView: View {
     @Binding var connection: ConnectionController
     @Binding var characteristic: CBCharacteristic
     @Binding var bleAlert: String?
-    
+
     var body: some View {
         Text("Signed write")
     }
@@ -261,7 +256,7 @@ struct ExtendedOperationView: View {
     @Binding var connection: ConnectionController
     @Binding var characteristic: CBCharacteristic
     @Binding var bleAlert: String?
-    
+
     var body: some View {
         Text("Extended")
     }
@@ -271,7 +266,7 @@ struct OperationsView: View {
     @Binding var connection: ConnectionController
     @Binding var characteristic: CBCharacteristic
     @Binding var bleAlert: String?
-    
+
     @ViewBuilder
     private func viewSelector(prop: CharacProp) -> some View {
         switch prop {
@@ -325,7 +320,7 @@ struct OperationsView: View {
             )
         }
     }
-    
+
     var body: some View {
         ScrollView {
             let props = characteristic.properties.forEachProp(action: {prop in return (UUID(), prop)})
@@ -335,4 +330,3 @@ struct OperationsView: View {
         }
     }
 }
-

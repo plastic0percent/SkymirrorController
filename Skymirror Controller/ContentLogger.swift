@@ -8,19 +8,19 @@
 import Foundation
 
 struct BLELogEntry {
-    var id: UUID
+    var identifier: UUID
     var deviceUUID: String
     var characUUID: String
     var content: Data
-    
+
     /// Initializer with a generated id
     init(deviceUUID: String, characUUID: String, content: Data) {
-        self.id = UUID()
+        self.identifier = UUID()
         self.deviceUUID = deviceUUID
         self.characUUID = characUUID
         self.content = content
     }
-    
+
     init(deviceUUID: UUID, characUUID: UUID, content: Data) {
         self.init(
             deviceUUID: deviceUUID.uuidString,
@@ -29,4 +29,3 @@ struct BLELogEntry {
         )
     }
 }
-

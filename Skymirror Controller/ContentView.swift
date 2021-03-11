@@ -9,13 +9,12 @@ import SwiftUI
 import SwiftyBluetooth
 import CoreBluetooth
 
-
 // Extension to Binding<String?> to make it possible to be used as bool
 extension Binding where Value == String? {
     func isShown() -> Binding<Bool> {
         return Binding<Bool>(
             get: {
-                if case .some(_) = self.wrappedValue {
+                if case .some = self.wrappedValue {
                     return true
                 }
                 return false
@@ -43,7 +42,7 @@ struct ContentView: View {
     // Current-set turing position
     @State private var turningVal = 15.0
     // Whether an Alert relating to BLE is shown and its content
-    @State private var bleAlert: String? = nil
+    @State private var bleAlert: String?
     // Whether the Scan pad is shown
     @State private var isShowScanPad = true
     // Whether the link to debugger is activated
@@ -54,28 +53,30 @@ struct ContentView: View {
     // Status of Skymirror
     @State private var statusList: [(String, String)] = []
     @State private var skymirrorController = SkymirrorController()
-    
+
     // MARK: Methods start here
-    
+
     /// Create an alert with a Dismiss button
     private func createAlert(message: String) {
         self.bleAlert = message
     }
-    
+
     /// Used as closures to create alerts when functions fail
     private func okOrAlert(result: Result<Void, Error>) {
         if case let .failure(error) = result {
             self.createAlert(message: error.localizedDescription)
         }
     }
-    
+
     /// Convert functions with a completion callback to simple functions which alerts on failure
-    public func wrapperAlertCb(origFunc: @escaping (_ completion: @escaping ConnectionCallback) -> Void) -> (() -> Void) {
+    public func wrapperAlertCb(
+        origFunc: @escaping (_ completion: @escaping ConnectionCallback) -> Void) -> (() -> Void
+        ) {
         return {
             origFunc(self.okOrAlert)
         }
     }
-    
+
     /// Request status from Skymirror and update state
     private func reqStatusUpdate() {
         // Send information request
@@ -90,7 +91,7 @@ struct ContentView: View {
             }
         })
     }
-    
+
     private func scanAction() {
         self.foundDevices.removeAll(keepingCapacity: true)
         self.skymirrorController.scan(stateChange: {result in
@@ -102,7 +103,7 @@ struct ContentView: View {
             }
         })
     }
-    
+
     private func createConnectAction(peripheral: Peripheral) -> (() -> Void) {
         return {
             // First disconnect any previously-conected periperals
@@ -120,7 +121,6 @@ struct ContentView: View {
                         )
                         // Hide scan bar
                         isShowScanPad = false
-                        break
                     case .failure(let error):
                         self.createAlert(message: error.localizedDescription)
                     }
@@ -128,21 +128,21 @@ struct ContentView: View {
             )
         }
     }
-    
+
     // MARK: View starts here
-    
+
     var titleTrailingItems: some View {
         // Connection selection
         Button(action: {
             isShowScanPad = !isShowScanPad
-        }) {
+        }, label: {
             HStack {
                 Text(isShowScanPad ? "Hide" : "Connect")
                 Image(systemName: "iphone.radiowaves.left.and.right")
             }
-        }
+        })
     }
-    
+
     var body: some View {
         NavigationView {
             VStack {
@@ -160,8 +160,8 @@ struct ContentView: View {
                             }
                             // Show all found devices
                             ForEach(Array(foundDevices.keys), id: \.self) {
-                                let peripheral = foundDevices[$0]!;
-                                let name = getDeviceName(peripheral: peripheral);
+                                let peripheral = foundDevices[$0]!
+                                let name = getDeviceName(peripheral: peripheral)
                                 Button(action: createConnectAction(peripheral: peripheral), label: {
                                     Text(name)
                                 })
@@ -169,7 +169,7 @@ struct ContentView: View {
                         }
                     }
                 }
-                
+
                 // MARK: Data columns
                 VStack {
                     Divider()
@@ -196,7 +196,7 @@ struct ContentView: View {
                         }
                     }
                 }
-                
+
                 // MARK: Fish repeller control
                 VStack {
                     Divider()
@@ -208,7 +208,7 @@ struct ContentView: View {
                         }
                         Spacer()
                     }
-                    
+
                     // Allow editing frequency only when on
                     if fishRepellerOn {
                         Divider()
@@ -232,7 +232,7 @@ struct ContentView: View {
                         }
                     }
                 }
-                
+
                 // MARK: Motor control
                 VStack {
                     Divider()
@@ -255,7 +255,7 @@ struct ContentView: View {
                         Spacer()
                     }
                 }
-                
+
                 // MARK: Turning control
                 VStack {
                     Divider()
@@ -280,7 +280,7 @@ struct ContentView: View {
                     Text(String(format: "%.2f", turningVal))
                         .foregroundColor(isTurningEditing ? .red : .blue)
                 }
-                
+
                 // MARK: Calibration control
                 VStack {
                     Divider()
@@ -291,11 +291,14 @@ struct ContentView: View {
                         Button(action: {
                             self.skymirrorController.disconnect(completion: okOrAlert)
                             self.isDebuggerActive = true
-                        }) {
+                        }, label: {
                             Text("Debugger")
-                        }
+                        })
                         .background(
-                            NavigationLink(destination: BLEDebuggerMainView(bleAlert: $bleAlert), isActive: $isDebuggerActive) {
+                            NavigationLink(
+                                destination: BLEDebuggerMainView(bleAlert: $bleAlert),
+                                isActive: $isDebuggerActive
+                            ) {
                                 EmptyView()
                             }
                         )
@@ -308,7 +311,7 @@ struct ContentView: View {
                         // Re-setup
                         Button(action: {
                             skymirrorController.boardSetup(completion: {result in
-                                switch (result) {
+                                switch result {
                                 case .success:
                                     freqVal = 0.0
                                     motorVal = 1500.0
@@ -317,9 +320,9 @@ struct ContentView: View {
                                     createAlert(message: error.localizedDescription)
                                 }
                             })
-                        }) {
+                        }, label: {
                             Text("Setup")
-                        }
+                        })
                         Spacer()
                         // Show log
                         NavigationLink(
@@ -329,7 +332,7 @@ struct ContentView: View {
                         Spacer()
                     }
                 }
-                
+
                 // MARK: Footnote
                 VStack {
                     Divider()

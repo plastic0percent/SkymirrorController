@@ -12,7 +12,7 @@ import SwiftyBluetooth
 enum DataError: Error {
     case malformedDate(received: String)
     case jsonError(message: String)
-    
+
 }
 
 extension DataError: LocalizedError {
@@ -40,7 +40,7 @@ struct DataResponse: Decodable {
     let depth: Float
     let lat: Float
     let lon: Float
-    
+
     init() {
         self.time = "2021-01-05T16:00:00"
         self.accel = [0.0, 0.0, 0.0]
@@ -53,30 +53,28 @@ struct DataResponse: Decodable {
     }
 }
 
-
 class SkymirrorController {
     // BLE Connection
     public var connection = ConnectionController(ifLog: true)
     // Payload from BLE
     private var receivedPayload = Data.init()
     // Which payload is expected, 0 for status, 1 for image
-    private var expectedPayload: ExpectedPayload = .statusData;
+    private var expectedPayload: ExpectedPayload = .statusData
     // Status payload, from receivedPayload
     private var decodedStatusPayload = DataResponse()
-    
+
     /// Scan for devices, getting only an ID and the peripheral
     func scan(stateChange: @escaping (Result<(UUID, Peripheral), Error>) -> Void) {
         self.connection.scan(stateChange: {result in
             switch result {
             case .success((let peripheral, _, _)):
                 stateChange(.success((peripheral.identifier, peripheral)))
-                break
             case .failure(let error):
                 stateChange(.failure(error))
             }
         })
     }
-    
+
     /// Connect the underlying BLE device
     func connect(peripheral: Peripheral, completion: @escaping ConnectionCallback) {
         self.connection.setPeripheral(peripheral: peripheral)
@@ -118,62 +116,65 @@ class SkymirrorController {
                             self.receivedPayload.removeSubrange(0...etxpos!)
                         }
                     })
-                break
-            case .failure(let e):
-                completion(.failure(e))
-                break
+            case .failure(let error):
+                completion(.failure(error))
             }
         })
     }
-    
+
     /// Disconnect the underlying BLE device
     func disconnect(completion: @escaping ConnectionCallback) {
         self.connection.disconnect(completion: completion)
     }
-    
+
     /// Write data to the FFE2 characteristc
     func write(cmd: UInt8, arg: UInt8, completion: @escaping ConnectionCallback) {
         let payloadData = Data([cmd, arg])
-        connection.write(data: payloadData, ofCharacWithUUID: "FFE2", fromServiceWithUUID: "FFE0", completion: completion)
+        connection.write(
+            data: payloadData,
+            ofCharacWithUUID: "FFE2",
+            fromServiceWithUUID: "FFE0",
+            completion: completion
+        )
     }
-    
+
     /// Set fish repeller frequency
     func setFrequency(frequency: Double, completion: @escaping ConnectionCallback) {
         self.write(cmd: 0x40, arg: UInt8(frequency / 30), completion: completion)
     }
-    
+
     /// Set motor ESC speed
     func setEscSpeed(speed: Double, completion: @escaping ConnectionCallback) {
         self.write(cmd: 0x50, arg: UInt8(speed / 10), completion: completion)
     }
-    
+
     /// Set turning servo value
     func setTurningValue(value: Double, completion: @escaping ConnectionCallback) {
         self.write(cmd: 0x60, arg: UInt8(value), completion: completion)
     }
-    
+
     /// Send calibrate signal
     func calibrate(completion: @escaping ConnectionCallback) {
         self.write(cmd: 0x00, arg: 0x00, completion: completion)
     }
-    
+
     /// Send re-setup signal
     func boardSetup(completion: @escaping ConnectionCallback) {
         self.write(cmd: 0xff, arg: 0x00, completion: completion)
     }
-    
+
     /// Request status information
     func requestInfo(completion: @escaping ConnectionCallback) {
-        self.expectedPayload = .statusData;
+        self.expectedPayload = .statusData
         self.write(cmd: 0x02, arg: 0x00, completion: completion)
     }
-    
+
     /// Request image
     func requestImage(completion: @escaping ConnectionCallback) {
-        self.expectedPayload = .imageData;
+        self.expectedPayload = .imageData
         self.write(cmd: 0x01, arg: 0x01, completion: completion)
     }
-    
+
     /// Get a data value from the received payload
     private func getData(key: String, completion: (_ result: Result<String, Error>) -> Void) {
         var result: String
@@ -190,31 +191,26 @@ class SkymirrorController {
             formatter.timeZone = TimeZone.current
             formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
             result = formatter.string(from: gotDate!)
-            break
         case "accel":
             result = String(format: "%.2fx %.2fy %.2fz",
                             decodedStatusPayload.accel[0],
                             decodedStatusPayload.accel[1],
                             decodedStatusPayload.accel[2]
             )
-            break
         case "speed":
             result = String(format: "%.2fx %.2fy %.2fz",
                             decodedStatusPayload.speed[0],
                             decodedStatusPayload.speed[1],
                             decodedStatusPayload.speed[2]
             )
-            break
         case "displ":
             result = String(format: "%.2fx %.2fy %.2fz",
                             decodedStatusPayload.displ[0],
                             decodedStatusPayload.displ[1],
                             decodedStatusPayload.displ[2]
             )
-            break
         case "pressure":
             result = String(format: "%.2f", decodedStatusPayload.pressure)
-            break
         case "depth":
             result = String(format: "%.2f", decodedStatusPayload.depth)
         case "lat":
@@ -226,7 +222,7 @@ class SkymirrorController {
         }
         completion(.success(result))
     }
-    
+
     /// Generate status list
     func genStatusList(completion: (_ result: Result<[(String, String)], Error>) -> Void) {
         var returnValue: [(String, String)] = []
@@ -240,13 +236,12 @@ class SkymirrorController {
             ("Latitude N", "lat"),
             ("Longitude E", "lon")
         ]
-        
+
         for (caption, key) in statusTypes {
             self.getData(key: key, completion: {result in
                 switch result {
                 case .success(let value):
                     returnValue.append((caption, value))
-                    break
                 case .failure(let error):
                     return completion(.failure(error))
                 }

@@ -15,21 +15,21 @@ struct BLEDebuggerMainView: View {
     // Whether the link to the next view is active
     @State private var isLinkActive = false
     @Binding var bleAlert: String?
-    
+
     /// Create an alert with a Dismiss button
     func createAlert(message: String) {
         self.bleAlert = message
     }
-    
+
     /// Used as closures to create alerts when functions fail
     func okOrAlert(result: Result<Void, Error>) {
         if case let .failure(error) = result {
             createAlert(message: error.localizedDescription)
         }
     }
-    
+
     // MARK: Debugger Main View
-    
+
     /// Scan for devices wrapper
     private func scanAction() {
         // First clear all items
@@ -44,7 +44,7 @@ struct BLEDebuggerMainView: View {
             }
         })
     }
-    
+
     var body: some View {
         VStack {
             ScrollView {
@@ -59,7 +59,7 @@ struct BLEDebuggerMainView: View {
                     }
                     // Show all found devices
                     ForEach(Array(foundDevices.keys), id: \.self) {
-                        let peripheral = foundDevices[$0]!.0;
+                        let peripheral = foundDevices[$0]!.0
                         let rssiString = foundDevices[$0]!.2 == nil ? "unknown" : "\(foundDevices[$0]!.2!)"
                         Button(action: {
                             connection.setPeripheral(peripheral: peripheral)
@@ -68,10 +68,8 @@ struct BLEDebuggerMainView: View {
                                 case .success:
                                     // Go to Services page
                                     isLinkActive = true
-                                    break
                                 case .failure(let error):
                                     createAlert(message: error.localizedDescription)
-                                    break
                                 }
                             })
                         }, label: {
@@ -112,29 +110,28 @@ struct BLEDebuggerMainView: View {
     }
 }
 
-
 struct BLEDebuggerDeviceView: View {
     // Discovered services, use dictionary to avoid duplicates
     @State private var services = [String: (CBService, [CBCharacteristic])]()
     // Whether the link to the next view is active
     @State private var isLinkActive = false
     // The selected service
-    @State private var selectedCharac: CBCharacteristic? = nil
+    @State private var selectedCharac: CBCharacteristic?
     @Binding var connection: ConnectionController
     @Binding var bleAlert: String?
-    
+
     /// Create an alert with a Dismiss button
     func createAlert(message: String) {
         self.bleAlert = message
     }
-    
+
     /// Used as closures to create alerts when functions fail
     func okOrAlert(result: Result<Void, Error>) {
         if case let .failure(error) = result {
             createAlert(message: error.localizedDescription)
         }
     }
-    
+
     // Make character view since integrating it will make it too complicated
     @ViewBuilder
     func characView(characs: [CBCharacteristic]) -> some View {
@@ -144,7 +141,7 @@ struct BLEDebuggerDeviceView: View {
             let characUUID = charac.CBUUIDRepresentation.uuidString
             let characProp = charac.properties
             let characVal = charac.value
-            
+
             Button(action: {
                 self.selectedCharac = charac
                 isLinkActive = true
@@ -186,9 +183,9 @@ struct BLEDebuggerDeviceView: View {
             Spacer()
         }
     }
-    
+
     // MARK: Device View
-    
+
     var titleTrailingItems: some View {
         // Show log
         NavigationLink(
@@ -196,7 +193,7 @@ struct BLEDebuggerDeviceView: View {
             destination: ContentLoggerView(logs: Binding($connection.automaticLog)!)
         )
     }
-    
+
     var body: some View {
         VStack {
             ScrollView {
@@ -207,7 +204,7 @@ struct BLEDebuggerDeviceView: View {
                         let serviceName = service.CBUUIDRepresentation
                         let serviceUUID = $0
                         let characs = services[$0]!.1
-                        
+
                         // Show service information
                         HStack {
                             Text("\(serviceName)" != serviceUUID ? "\(serviceName) [\(serviceUUID)]:" : "Service [\(serviceUUID)]:")
@@ -217,7 +214,7 @@ struct BLEDebuggerDeviceView: View {
                         }
                         Divider()
                         characView(characs: characs)
-                        
+
                     }
                     // Put the navigation link to the background
                     .background(
@@ -241,7 +238,7 @@ struct BLEDebuggerDeviceView: View {
             // First clear all flags
             isLinkActive = false
             // Construct a list of all services and their characteristics
-            connection.scanServices() { result in
+            connection.scanServices { result in
                 switch result {
                 case .success(let servs):
                     for service in servs {
@@ -251,17 +248,13 @@ struct BLEDebuggerDeviceView: View {
                                 switch result {
                                 case .success(let characs):
                                     self.services[service.CBUUIDRepresentation.uuidString] = (service, characs)
-                                    break
                                 case .failure(let error):
                                     self.createAlert(message: error.localizedDescription)
-                                    break
                                 }
                             })
                     }
-                    break
                 case .failure(let error):
                     self.createAlert(message: error.localizedDescription)
-                    break
                 }
             }
         }
@@ -274,19 +267,23 @@ struct BLEDebuggerCharacView: View {
     @Binding var connection: ConnectionController
     @Binding var bleAlert: String?
     @Binding var receivedHistory: [BLELogEntry]
-    
+
     // MARK: Characteristic View
-    
+
     var titleTrailingItems: some View {
         // Show log
         NavigationLink("Log", destination: ContentLoggerView(logs: $receivedHistory))
     }
-    
+
     var body: some View {
         VStack {
             ScrollView {
                 LazyVStack {
-                    OperationsView(connection: $connection, characteristic: Binding($characteristic)!, bleAlert: $bleAlert)
+                    OperationsView(
+                        connection: $connection,
+                        characteristic: Binding($characteristic)!,
+                        bleAlert: $bleAlert
+                    )
                     Divider()
                 }
             }
@@ -295,4 +292,3 @@ struct BLEDebuggerCharacView: View {
         .navigationBarItems(trailing: titleTrailingItems)
     }
 }
-
