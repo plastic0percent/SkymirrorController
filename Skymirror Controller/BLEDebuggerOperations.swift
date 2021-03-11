@@ -110,7 +110,7 @@ struct BroadcastOperationView: View {
     @Binding var bleAlert: String?
 
     var body: some View {
-        Text("Broad cast")
+        Text("Broad cast").font(.subheadline)
     }
 }
 
@@ -193,7 +193,7 @@ struct WriteOperationView: View {
         VStack {
             // Title
             HStack {
-                Text("Write to characteristic")
+                Text("Write to characteristic").font(.subheadline)
             }
             // Input area
             HStack {
@@ -260,7 +260,7 @@ struct NotifyOperationView: View {
         VStack {
             // Title
             HStack {
-                Text("Notify")
+                Text("Notify").font(.subheadline)
             }
             HStack {
                 Button(action: {
@@ -298,7 +298,7 @@ struct IndicateOperationView: View {
     @Binding var bleAlert: String?
 
     var body: some View {
-        Text("Indicate")
+        Text("Indicate").font(.subheadline)
     }
 }
 
@@ -308,7 +308,7 @@ struct SignedWriteOperationView: View {
     @Binding var bleAlert: String?
 
     var body: some View {
-        Text("Signed write")
+        Text("Signed write").font(.subheadline)
     }
 }
 
@@ -318,7 +318,7 @@ struct ExtendedOperationView: View {
     @Binding var bleAlert: String?
 
     var body: some View {
-        Text("Extended")
+        Text("Extended").font(.subheadline)
     }
 }
 
@@ -342,13 +342,7 @@ struct OperationsView: View {
                 characteristic: $characteristic,
                 bleAlert: $bleAlert
             )
-        case .writeNoResponse:
-            WriteOperationView(
-                connection: $connection,
-                characteristic: $characteristic,
-                bleAlert: $bleAlert
-            )
-        case .write:
+        case .write, .writeNoResponse:
             WriteOperationView(
                 connection: $connection,
                 characteristic: $characteristic,
@@ -386,6 +380,7 @@ struct OperationsView: View {
             let props = characteristic.properties.forEachProp(action: {prop in return (UUID(), prop)})
             ForEach(props, id: \.0) {
                 viewSelector(prop: $0.1)
+                Divider()
             }
         }
     }

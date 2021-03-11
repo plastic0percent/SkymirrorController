@@ -49,7 +49,7 @@ class ConnectionController {
     }
 
     /// Scan all devices, whenever state changes, stateChange is called
-    func scan(stateChange: @escaping (Result<(Peripheral, [String: Any], Int?), Error>) -> Void) {
+    func scan(stateChange: @escaping (Result<(Peripheral, Int?), Error>) -> Void) {
         SwiftyBluetooth.scanForPeripherals(
             withServiceUUIDs: nil,
             timeoutAfter: 15
@@ -58,8 +58,8 @@ class ConnectionController {
             case .scanStarted:
                 // No need to handle this
                 break
-            case .scanResult(let peripheral, let advertisement, let RSSI):
-                stateChange(.success((peripheral, advertisement, RSSI)))
+            case .scanResult(let peripheral, _, let RSSI):
+                stateChange(.success((peripheral, RSSI)))
             case .scanStopped(_, let error):
                 if error != nil {
                     stateChange(.failure(error!))

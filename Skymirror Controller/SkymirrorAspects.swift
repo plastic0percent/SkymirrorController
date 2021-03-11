@@ -67,7 +67,7 @@ class SkymirrorController {
     func scan(stateChange: @escaping (Result<(UUID, Peripheral), Error>) -> Void) {
         self.connection.scan(stateChange: {result in
             switch result {
-            case .success((let peripheral, _, _)):
+            case .success((let peripheral, _)):
                 stateChange(.success((peripheral.identifier, peripheral)))
             case .failure(let error):
                 stateChange(.failure(error))

@@ -11,7 +11,7 @@ import CoreBluetooth
 
 struct BLEDebuggerMainView: View {
     @State private var connection = ConnectionController(ifLog: true)
-    @State private var foundDevices = [UUID: (Peripheral, [String: Any], Int?)]()
+    @State private var foundDevices = [UUID: (Peripheral, Int?)]()
     // Whether the link to the next view is active
     @State private var isLinkActive = false
     @Binding var bleAlert: String?
@@ -46,56 +46,54 @@ struct BLEDebuggerMainView: View {
     }
 
     var body: some View {
-        VStack {
-            ScrollView {
-                LazyVStack {
-                    // "Scan" button
-                    Button(action: scanAction) {
-                        Text("Rescan")
-                        Image(systemName: "magnifyingglass")
-                    }.onAppear {
-                        // Start scan automatically
-                        self.scanAction()
-                    }
-                    // Show all found devices
-                    ForEach(Array(foundDevices.keys), id: \.self) {
-                        let peripheral = foundDevices[$0]!.0
-                        let rssiString = foundDevices[$0]!.2 == nil ? "unknown" : "\(foundDevices[$0]!.2!)"
-                        Button(action: {
-                            connection.setPeripheral(peripheral: peripheral)
-                            connection.connect(completion: {result in
-                                switch result {
-                                case .success:
-                                    // Go to Services page
-                                    isLinkActive = true
-                                case .failure(let error):
-                                    createAlert(message: error.localizedDescription)
-                                }
-                            })
-                        }, label: {
-                            // Show device information
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text("Name: \(peripheral.name ?? "unknown")")
-                                        .font(.system(size: 17))
-                                        .padding(.leading)
-                                    Text("UUID: \(peripheral.identifier.uuidString)")
-                                        .font(.system(size: 12, weight: .light))
-                                        .padding(.leading)
-                                }
-                                Spacer()
-                                Text("RSSI: \(rssiString)")
-                                    .font(.system(size: 11))
-                                    .padding(.trailing)
-                            }
-                        })
-                        Divider()
-                    }
-                }
-            }
+        ScrollView {
             NavigationLink(destination: BLEDebuggerDeviceView(connection: $connection, bleAlert: $bleAlert),
                            isActive: $isLinkActive) {
                 EmptyView()
+            }
+            LazyVStack {
+                // "Scan" button
+                Button(action: scanAction) {
+                    Text("Rescan")
+                    Image(systemName: "magnifyingglass")
+                }.onAppear {
+                    // Start scan automatically
+                    self.scanAction()
+                }
+                // Show all found devices
+                ForEach(Array(foundDevices.keys), id: \.self) {
+                    let peripheral = foundDevices[$0]!.0
+                    let rssiString = foundDevices[$0]!.1 == nil ? "unknown" : "\(foundDevices[$0]!.1!)"
+                    Button(action: {
+                        connection.setPeripheral(peripheral: peripheral)
+                        connection.connect(completion: {result in
+                            switch result {
+                            case .success:
+                                // Go to Services page
+                                isLinkActive = true
+                            case .failure(let error):
+                                createAlert(message: error.localizedDescription)
+                            }
+                        })
+                    }, label: {
+                        // Show device information
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text("Name: \(peripheral.name ?? "unknown")")
+                                    .font(.system(size: 17))
+                                    .padding(.leading)
+                                Text("UUID: \(peripheral.identifier.uuidString)")
+                                    .font(.system(size: 12, weight: .light))
+                                    .padding(.leading)
+                            }
+                            Spacer()
+                            Text("RSSI: \(rssiString)")
+                                .font(.system(size: 11))
+                                .padding(.trailing)
+                        }
+                    })
+                    Divider()
+                }
             }
         }
         .navigationBarTitle(Text("BLE Debugger"), displayMode: .inline)
@@ -243,31 +241,7 @@ struct BLEDebuggerDeviceView: View {
     }
 
     var body: some View {
-        VStack {
-            ScrollView {
-                LazyVStack {
-                    // Show all found services
-                    ForEach(Array(services.keys), id: \.self) {
-                        let service = services[$0]!.0
-                        let serviceName = service.CBUUIDRepresentation
-                        let serviceUUID = $0
-                        let characs = services[$0]!.1
-
-                        // Show service information
-                        HStack {
-                            Text("\(serviceName)" != serviceUUID
-                                    ? "\(serviceName) [\(serviceUUID)]:"
-                                    : "Service [\(serviceUUID)]:"
-                            )
-                            .font(.system(size: 13, weight: .ultraLight))
-                            .padding(.leading)
-                            Spacer()
-                        }
-                        Divider()
-                        characView(characs: characs)
-                    }
-                }
-            }
+        ScrollView {
             NavigationLink(destination: BLEDebuggerCharacView(
                 characteristic: $selectedCharac,
                 connection: $connection,
@@ -276,8 +250,30 @@ struct BLEDebuggerDeviceView: View {
             isActive: $isLinkActive) {
                 EmptyView()
             }
+            LazyVStack {
+                // Show all found services
+                ForEach(Array(services.keys), id: \.self) {
+                    let service = services[$0]!.0
+                    let serviceName = service.CBUUIDRepresentation
+                    let serviceUUID = $0
+                    let characs = services[$0]!.1
+
+                    // Show service information
+                    HStack {
+                        Text("\(serviceName)" != serviceUUID
+                                ? "\(serviceName) [\(serviceUUID)]:"
+                                : "Service [\(serviceUUID)]:"
+                        )
+                        .font(.system(size: 13, weight: .ultraLight))
+                        .padding(.leading)
+                        Spacer()
+                    }
+                    Divider()
+                    characView(characs: characs)
+                }
+            }
         }
-        .navigationBarTitle(Text("Services and Characteristics"), displayMode: .inline)
+        .navigationBarTitle(Text("Peripheral"), displayMode: .inline)
         .navigationBarItems(trailing: titleTrailingItems)
         .onAppear(perform: deviceOnAppear)
     }
@@ -291,25 +287,16 @@ struct BLEDebuggerCharacView: View {
 
     // MARK: Characteristic View
 
-    var titleTrailingItems: some View {
-        // Show log
-        NavigationLink("Log", destination: ContentLoggerView(connection: $connection))
-    }
-
     var body: some View {
-        VStack {
-            ScrollView {
-                LazyVStack {
-                    OperationsView(
-                        connection: $connection,
-                        characteristic: Binding($characteristic)!,
-                        bleAlert: $bleAlert
-                    )
-                    Divider()
-                }
+        ScrollView {
+            LazyVStack {
+                OperationsView(
+                    connection: $connection,
+                    characteristic: Binding($characteristic)!,
+                    bleAlert: $bleAlert
+                )
             }
         }
-        .navigationBarTitle(Text("Characteristic Operations"), displayMode: .inline)
-        .navigationBarItems(trailing: titleTrailingItems)
+        .navigationBarTitle(Text("Characteristic"), displayMode: .inline)
     }
 }

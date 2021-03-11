@@ -348,6 +348,7 @@ struct ContentView: View {
                 self.isDebuggerActive = false
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
         .alert(isPresented: $bleAlert.isShown()) { () -> Alert in
             let button = Alert.Button.default(Text("Dismiss"))
             return Alert(title: Text("BLE Warning"),
