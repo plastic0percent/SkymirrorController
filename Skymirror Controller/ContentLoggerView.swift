@@ -5,6 +5,7 @@
 //  Created by 张迈允 on 2021/3/8.
 //
 
+import Foundation
 import SwiftUI
 
 struct ContentLoggerView: View {
@@ -45,9 +46,17 @@ struct ContentLoggerView: View {
                 Divider()
                 HStack {
                     VStack(alignment: .leading) {
+                        let encoding: String.Encoding = isUTF8 ? .utf8 : .ascii
+                        let decodedArmored = String.init(
+                            data: item.content,
+                            encoding: encoding,
+                            filter: {chr in
+                                return xxdFilter(chr: chr, encoding: encoding)
+                            }
+                        ) ?? ""
                         Text("\(String.init(data: item.content, encoding: .HEX))")
                             .font(Font.custom("Courier New", size: 16))
-                        Text("\(String.init(data: item.content, encoding: isUTF8 ? .utf8 : .ascii) ?? "")")
+                        Text("\(decodedArmored)")
                             .font(Font.custom("Courier New", size: 16))
                     }
                     .padding(.leading)

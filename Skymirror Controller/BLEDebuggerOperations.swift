@@ -47,9 +47,33 @@ extension String {
         return newData
     }
 
-    init(data: Data, encoding: ExtendedEncoding) {
-        self.init(data.map { String(format: encoding == .hex ? "%02hhx" : "%02hhX", $0) }.joined())
+    init?(data: Data, encoding: Encoding, filter: (UInt8) -> UInt8 = {dat in return dat}) {
+        self.init(
+            data: Data(data.map {
+                filter($0)
+            }),
+            encoding: encoding
+        )
     }
+
+    init(data: Data, encoding: ExtendedEncoding) {
+        self.init(
+            data.map {
+                String(format: encoding == .hex ? "%02hhx" : "%02hhX", $0)
+            }.joined()
+        )
+    }
+}
+
+/// `xxd` style filter
+func xxdFilter(chr: UInt8, encoding: String.Encoding) -> UInt8 {
+    if chr <= 0x1f // ASCII control
+        // || chr == 0x20 // space
+        || chr == 0x7f // DEL
+        || String.init(data: Data([chr]), encoding: encoding) == nil {
+        return 0x2E // '.'
+    }
+    return chr
 }
 
 /// Extensions to read the properties better
@@ -158,11 +182,13 @@ struct ReadOperationView: View {
                 })
                 Divider()
                 VStack {
-                    let resultStr = String.init(data: result, encoding: .utf8)
+                    let resultStr = String.init(data: result, encoding: .utf8, filter: {chr in
+                        return xxdFilter(chr: chr, encoding: .utf8)
+                    })
                     if resultStr != nil {
                         Text("UTF-8: \"\(resultStr!)\"")
                     }
-                    Text("HEX: \(String.init(data: result, encoding: .hex))")
+                    Text("HEX: \(String.init(data: result, encoding: .HEX))")
                 }
                 Spacer()
             }
