@@ -91,18 +91,18 @@ struct BLEDebuggerMainView: View {
                         })
                         Divider()
                     }
-                    // Put the navigation link to the background
-                    .background(
-                        NavigationLink(destination: BLEDebuggerDeviceView(connection: $connection, bleAlert: $bleAlert),
-                                       isActive: $isLinkActive) {
-                            EmptyView()
-                        }
-                        .hidden()
-                    )
                 }
             }
         }
         .navigationBarTitle(Text("BLE Debugger"), displayMode: .inline)
+        // Put the navigation link to the background
+        .background(
+            NavigationLink(destination: BLEDebuggerDeviceView(connection: $connection, bleAlert: $bleAlert),
+                           isActive: $isLinkActive) {
+                EmptyView()
+            }
+            .hidden()
+        )
         .onAppear {
             // If leaving from the previous view, disconnect everything
             connection.disconnect(completion: okOrAlert)
@@ -132,7 +132,59 @@ struct BLEDebuggerDeviceView: View {
         }
     }
 
-    // Make character view since integrating it will make it too complicated
+    /// Post-connect actions
+    private func postConnectActions(characteristcs: [CBCharacteristic]) {
+        for characteristc in characteristcs {
+            _ = characteristc.properties.forEachProp(action: {prop in
+                switch prop {
+                case .notify:
+                    // Register notifications so that they appear in logs
+                    let characUUID = characteristc.CBUUIDRepresentation.uuidString
+                    let serviceUUID = characteristc.service.CBUUIDRepresentation.uuidString
+                    if self.connection.ifNotify(
+                        ofCharacWithUUID: characUUID,
+                        fromServiceWithUUID: serviceUUID
+                    ) == false {
+                        self.connection.addNotify(
+                            ofCharacWithUUID: characUUID,
+                            fromServiceWithUUID: serviceUUID,
+                            completion: {_ in }, onReceive: {_ in})
+                    }
+                default:
+                    break
+                }
+            })
+        }
+    }
+
+    /// On appear actions of the device view
+    private func deviceOnAppear() {
+        // First clear all flags
+        self.isLinkActive = false
+        // Construct a list of all services and their characteristics
+        connection.scanServices { result in
+            switch result {
+            case .success(let servs):
+                for service in servs {
+                    connection.scanCharacs(
+                        fromServiceWithUUID: service.CBUUIDRepresentation.uuidString,
+                        completion: {result in
+                            switch result {
+                            case .success(let characs):
+                                self.services[service.CBUUIDRepresentation.uuidString] = (service, characs)
+                                self.postConnectActions(characteristcs: characs)
+                            case .failure(let error):
+                                self.createAlert(message: error.localizedDescription)
+                            }
+                        })
+                }
+            case .failure(let error):
+                self.createAlert(message: error.localizedDescription)
+            }
+        }
+    }
+
+    /// Make character view since integrating it will make it too complicated
     @ViewBuilder
     func characView(characs: [CBCharacteristic]) -> some View {
         ForEach(characs, id: \.self) {
@@ -207,57 +259,36 @@ struct BLEDebuggerDeviceView: View {
 
                         // Show service information
                         HStack {
-                            Text("\(serviceName)" != serviceUUID ? "\(serviceName) [\(serviceUUID)]:" : "Service [\(serviceUUID)]:")
-                                .font(.system(size: 13, weight: .ultraLight))
-                                .padding(.leading)
+                            Text("\(serviceName)" != serviceUUID
+                                    ? "\(serviceName) [\(serviceUUID)]:"
+                                    : "Service [\(serviceUUID)]:"
+                            )
+                            .font(.system(size: 13, weight: .ultraLight))
+                            .padding(.leading)
                             Spacer()
                         }
                         Divider()
                         characView(characs: characs)
-
                     }
-                    // Put the navigation link to the background
-                    .background(
-                        NavigationLink(destination: BLEDebuggerCharacView(
-                            characteristic: $selectedCharac,
-                            connection: $connection,
-                            bleAlert: $bleAlert,
-                            receivedHistory: Binding($connection.automaticLog)!
-                        ),
-                        isActive: $isLinkActive) {
-                            EmptyView()
-                        }
-                        .hidden()
-                    )
                 }
             }
         }
         .navigationBarTitle(Text("Services and Characteristics"), displayMode: .inline)
         .navigationBarItems(trailing: titleTrailingItems)
-        .onAppear {
-            // First clear all flags
-            isLinkActive = false
-            // Construct a list of all services and their characteristics
-            connection.scanServices { result in
-                switch result {
-                case .success(let servs):
-                    for service in servs {
-                        connection.scanCharacs(
-                            fromServiceWithUUID: service.CBUUIDRepresentation.uuidString,
-                            completion: {result in
-                                switch result {
-                                case .success(let characs):
-                                    self.services[service.CBUUIDRepresentation.uuidString] = (service, characs)
-                                case .failure(let error):
-                                    self.createAlert(message: error.localizedDescription)
-                                }
-                            })
-                    }
-                case .failure(let error):
-                    self.createAlert(message: error.localizedDescription)
-                }
+        // Put the navigation link to the background
+        .background(
+            NavigationLink(destination: BLEDebuggerCharacView(
+                characteristic: $selectedCharac,
+                connection: $connection,
+                bleAlert: $bleAlert,
+                receivedHistory: Binding($connection.automaticLog)!
+            ),
+            isActive: $isLinkActive) {
+                EmptyView()
             }
-        }
+            .hidden()
+        )
+        .onAppear(perform: deviceOnAppear)
     }
 }
 

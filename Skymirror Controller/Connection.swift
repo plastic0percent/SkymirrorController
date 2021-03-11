@@ -39,6 +39,8 @@ class ConnectionController {
     // The Peripheral in use
     private var usingPeripheral: Peripheral?
     public var automaticLog: [BLELogEntry]?
+    // States
+    private var notifications = [[String]: Bool]()
     // Lock for writer
     let writeSemaphore = DispatchSemaphore(value: 1)
 
@@ -124,7 +126,7 @@ class ConnectionController {
         }
         // Add BLE notification callback
         NotificationCenter.default.addObserver(forName: Peripheral.PeripheralCharacteristicValueUpdate,
-                                               object: self.usingPeripheral,
+                                               object: self.usingPeripheral!,
                                                queue: nil) { notification in
             if notification.userInfo == nil {
                 return completion(.failure(ConnectionError.malformedResponse(whichOne: "notification")))
@@ -144,13 +146,54 @@ class ConnectionController {
 
         // Enable notification
         self.usingPeripheral!.setNotifyValue(
-        toEnabled: true,
-        forCharacWithUUID: ofCharacWithUUID,
-        ofServiceWithUUID: fromServiceWithUUID
-        ) { result in
-            print("Notification: \(result)")
+            toEnabled: true,
+            forCharacWithUUID: ofCharacWithUUID,
+            ofServiceWithUUID: fromServiceWithUUID,
+            completion: {result in
+                switch result {
+                case .success:
+                    self.notifications[[ofCharacWithUUID, fromServiceWithUUID]] = true
+                    return completion(.success(()))
+                case .failure(let error):
+                    return completion(.failure(error))
+                }
+            }
+        )
+    }
+
+    /// Check if notification is registered
+    func ifNotify(ofCharacWithUUID: String, fromServiceWithUUID: String) -> Bool {
+        return self.notifications[[ofCharacWithUUID, fromServiceWithUUID]] ?? false
+    }
+
+    /// Remove registered notification
+    func rmNotify(ofCharacWithUUID: String,
+                  fromServiceWithUUID: String,
+                  completion: @escaping ConnectionCallback
+    ) {
+        if self.usingPeripheral == nil {
+            return completion(.failure(ConnectionError.noDeviceError))
         }
-        return completion(.success(()))
+        NotificationCenter.default.removeObserver(
+            self, // Not really sure if this is the correct way to call this
+            name: Peripheral.PeripheralCharacteristicValueUpdate,
+            object: self.usingPeripheral!
+        )
+        // NotificationCenter.default.removeObserver
+        self.usingPeripheral!.setNotifyValue(
+            toEnabled: false,
+            forCharacWithUUID: ofCharacWithUUID,
+            ofServiceWithUUID: fromServiceWithUUID,
+            completion: {result in
+                switch result {
+                case .success:
+                    self.notifications[[ofCharacWithUUID, fromServiceWithUUID]] = false
+                    return completion(.success(()))
+                case .failure(let error):
+                    return completion(.failure(error))
+                }
+            }
+        )
     }
 
     /// Disconnect the device

@@ -226,9 +226,69 @@ struct NotifyOperationView: View {
     @Binding var connection: ConnectionController
     @Binding var characteristic: CBCharacteristic
     @Binding var bleAlert: String?
+    @State private var registeredNotify: Bool = false
+
+    /// Create an alert with a Dismiss button
+    func createAlert(message: String) {
+        self.bleAlert = message
+    }
+
+    /// Used as closures to create alerts when functions fail
+    func okOrAlert(result: Result<Void, Error>) {
+        if case let .failure(error) = result {
+            createAlert(message: error.localizedDescription)
+        }
+    }
+
+    /// Toggle the registered state
+    private func toggleRegistered(result: Result<Void, Error>) {
+        if case .success = result {
+            self.registeredNotify = !self.registeredNotify
+        }
+        okOrAlert(result: result)
+    }
+
+    /// Check whether notification is registered
+    private func bodyOnAppear() {
+        self.registeredNotify = connection.ifNotify(
+            ofCharacWithUUID: self.characteristic.CBUUIDRepresentation.uuidString,
+            fromServiceWithUUID: self.characteristic.service.CBUUIDRepresentation.uuidString
+        )
+    }
 
     var body: some View {
-        Text("Notify")
+        VStack {
+            // Title
+            HStack {
+                Text("Notify")
+            }
+            HStack {
+                Button(action: {
+                    let characUUID = self.characteristic.CBUUIDRepresentation.uuidString
+                    let serviceUUID = self.characteristic.service.CBUUIDRepresentation.uuidString
+                    if registeredNotify {
+                        self.connection.rmNotify(
+                            ofCharacWithUUID: characUUID,
+                            fromServiceWithUUID: serviceUUID,
+                            completion: toggleRegistered
+                        )
+                    } else {
+                        self.connection.addNotify(
+                            ofCharacWithUUID: characUUID,
+                            fromServiceWithUUID: serviceUUID,
+                            completion: toggleRegistered,
+                            onReceive: {_ in}
+                        )
+                    }
+                }, label: {
+                    Text(self.registeredNotify
+                            ? "Unregister notifications"
+                            :"Register notifications"
+                    )
+                })
+            }
+        }
+        .onAppear(perform: bodyOnAppear)
     }
 }
 
