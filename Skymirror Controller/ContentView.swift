@@ -327,7 +327,7 @@ struct ContentView: View {
                         // Show log
                         NavigationLink(
                             "Log",
-                            destination: ContentLoggerView(logs: Binding($skymirrorController.connection.automaticLog)!)
+                            destination: ContentLoggerView(connection: $skymirrorController.connection)
                         )
                         Spacer()
                     }

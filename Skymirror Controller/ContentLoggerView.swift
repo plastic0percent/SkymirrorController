@@ -61,3 +61,9 @@ struct ContentLoggerView: View {
         .navigationBarTitle(Text("Content Log"), displayMode: .inline)
     }
 }
+
+extension ContentLoggerView {
+    init(connection: Binding<ConnectionController>) {
+        self.init(logs: Binding(connection.automaticLog)!)
+    }
+}

@@ -93,16 +93,12 @@ struct BLEDebuggerMainView: View {
                     }
                 }
             }
-        }
-        .navigationBarTitle(Text("BLE Debugger"), displayMode: .inline)
-        // Put the navigation link to the background
-        .background(
             NavigationLink(destination: BLEDebuggerDeviceView(connection: $connection, bleAlert: $bleAlert),
                            isActive: $isLinkActive) {
                 EmptyView()
             }
-            .hidden()
-        )
+        }
+        .navigationBarTitle(Text("BLE Debugger"), displayMode: .inline)
         .onAppear {
             // If leaving from the previous view, disconnect everything
             connection.disconnect(completion: okOrAlert)
@@ -242,7 +238,7 @@ struct BLEDebuggerDeviceView: View {
         // Show log
         NavigationLink(
             "Log",
-            destination: ContentLoggerView(logs: Binding($connection.automaticLog)!)
+            destination: ContentLoggerView(connection: $connection)
         )
     }
 
@@ -272,22 +268,17 @@ struct BLEDebuggerDeviceView: View {
                     }
                 }
             }
-        }
-        .navigationBarTitle(Text("Services and Characteristics"), displayMode: .inline)
-        .navigationBarItems(trailing: titleTrailingItems)
-        // Put the navigation link to the background
-        .background(
             NavigationLink(destination: BLEDebuggerCharacView(
                 characteristic: $selectedCharac,
                 connection: $connection,
-                bleAlert: $bleAlert,
-                receivedHistory: Binding($connection.automaticLog)!
+                bleAlert: $bleAlert
             ),
             isActive: $isLinkActive) {
                 EmptyView()
             }
-            .hidden()
-        )
+        }
+        .navigationBarTitle(Text("Services and Characteristics"), displayMode: .inline)
+        .navigationBarItems(trailing: titleTrailingItems)
         .onAppear(perform: deviceOnAppear)
     }
 }
@@ -297,13 +288,12 @@ struct BLEDebuggerCharacView: View {
     @Binding var characteristic: CBCharacteristic?
     @Binding var connection: ConnectionController
     @Binding var bleAlert: String?
-    @Binding var receivedHistory: [BLELogEntry]
 
     // MARK: Characteristic View
 
     var titleTrailingItems: some View {
         // Show log
-        NavigationLink("Log", destination: ContentLoggerView(logs: $receivedHistory))
+        NavigationLink("Log", destination: ContentLoggerView(connection: $connection))
     }
 
     var body: some View {

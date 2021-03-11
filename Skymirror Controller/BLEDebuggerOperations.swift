@@ -202,7 +202,7 @@ struct WriteOperationView: View {
                     Text("As HEX Value")
                 }
                 Divider()
-                TextField("Value", text: $inputValue, onEditingChanged: {_ in }, onCommit: {
+                TextField("Value", text: $inputValue, onCommit: {
                     let data = isHex ? inputValue.data(using: .hex) : inputValue.data(using: .utf8)
                     if data == nil {
                         createAlert(message: "Malformed HEX data: \"\(inputValue)\"")
