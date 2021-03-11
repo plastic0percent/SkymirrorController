@@ -9,23 +9,6 @@ import SwiftUI
 import SwiftyBluetooth
 import CoreBluetooth
 
-// Extension to Binding<String?> to make it possible to be used as bool
-extension Binding where Value == String? {
-    func isShown() -> Binding<Bool> {
-        return Binding<Bool>(
-            get: {
-                if case .some = self.wrappedValue {
-                    return true
-                }
-                return false
-            },
-            set: {
-                self.wrappedValue = $0 ? "Unknown Error" : nil
-            }
-        )
-    }
-}
-
 struct ContentView: View {
     // Whether the fish repeller beeper is on
     @State private var fishRepellerOn = false
@@ -53,81 +36,6 @@ struct ContentView: View {
     // Status of Skymirror
     @State private var statusList: [(String, String)] = []
     @State private var skymirrorController = SkymirrorController()
-
-    // MARK: Methods start here
-
-    /// Create an alert with a Dismiss button
-    private func createAlert(message: String) {
-        self.bleAlert = message
-    }
-
-    /// Used as closures to create alerts when functions fail
-    private func okOrAlert(result: Result<Void, Error>) {
-        if case let .failure(error) = result {
-            self.createAlert(message: error.localizedDescription)
-        }
-    }
-
-    /// Convert functions with a completion callback to simple functions which alerts on failure
-    public func wrapperAlertCb(
-        origFunc: @escaping (_ completion: @escaping ConnectionCallback) -> Void) -> (() -> Void
-        ) {
-        return {
-            origFunc(self.okOrAlert)
-        }
-    }
-
-    /// Request status from Skymirror and update state
-    private func reqStatusUpdate() {
-        // Send information request
-        self.skymirrorController.requestInfo(completion: okOrAlert)
-        // Separate calls since they are not always correlated
-        self.skymirrorController.genStatusList(completion: {result in
-            switch result {
-            case .success(let gotStatusList):
-                statusList = gotStatusList
-            case .failure(let error):
-                createAlert(message: error.localizedDescription)
-            }
-        })
-    }
-
-    private func scanAction() {
-        self.foundDevices.removeAll(keepingCapacity: true)
-        self.skymirrorController.scan(stateChange: {result in
-            switch result {
-            case .success(let item):
-                foundDevices[item.0] = item.1
-            case .failure(let error):
-                createAlert(message: error.localizedDescription)
-            }
-        })
-    }
-
-    private func createConnectAction(peripheral: Peripheral) -> (() -> Void) {
-        return {
-            // First disconnect any previously-conected periperals
-            self.skymirrorController.disconnect(completion: okOrAlert)
-            self.skymirrorController.connect(
-                peripheral: peripheral,
-                completion: {result in
-                    switch result {
-                    case .success:
-                        // Update the information every 5 seconds
-                        Timer.scheduledTimer(
-                            withTimeInterval: 5.0,
-                            repeats: true,
-                            block: {_ in self.reqStatusUpdate()}
-                        )
-                        // Hide scan bar
-                        isShowScanPad = false
-                    case .failure(let error):
-                        self.createAlert(message: error.localizedDescription)
-                    }
-                }
-            )
-        }
-    }
 
     // MARK: View starts here
 
@@ -354,6 +262,81 @@ struct ContentView: View {
             return Alert(title: Text("BLE Warning"),
                          message: Text(bleAlert!),
                          dismissButton: button
+            )
+        }
+    }
+
+    // MARK: Methods start here
+
+    /// Create an alert with a Dismiss button
+    private func createAlert(message: String) {
+        self.bleAlert = message
+    }
+
+    /// Used as closures to create alerts when functions fail
+    private func okOrAlert(result: Result<Void, Error>) {
+        if case let .failure(error) = result {
+            self.createAlert(message: error.localizedDescription)
+        }
+    }
+
+    /// Convert functions with a completion callback to simple functions which alerts on failure
+    public func wrapperAlertCb(
+        origFunc: @escaping (_ completion: @escaping ConnectionCallback) -> Void) -> (() -> Void
+        ) {
+        return {
+            origFunc(self.okOrAlert)
+        }
+    }
+
+    /// Request status from Skymirror and update state
+    private func reqStatusUpdate() {
+        // Send information request
+        self.skymirrorController.requestInfo(completion: okOrAlert)
+        // Separate calls since they are not always correlated
+        self.skymirrorController.genStatusList(completion: {result in
+            switch result {
+            case .success(let gotStatusList):
+                statusList = gotStatusList
+            case .failure(let error):
+                createAlert(message: error.localizedDescription)
+            }
+        })
+    }
+
+    private func scanAction() {
+        self.foundDevices.removeAll(keepingCapacity: true)
+        self.skymirrorController.scan(stateChange: {result in
+            switch result {
+            case .success(let item):
+                foundDevices[item.0] = item.1
+            case .failure(let error):
+                createAlert(message: error.localizedDescription)
+            }
+        })
+    }
+
+    private func createConnectAction(peripheral: Peripheral) -> (() -> Void) {
+        return {
+            // First disconnect any previously-conected periperals
+            self.skymirrorController.disconnect(completion: okOrAlert)
+            self.skymirrorController.connect(
+                peripheral: peripheral,
+                completion: {result in
+                    switch result {
+                    case .success:
+                        // Update the information every 5 seconds
+                        Timer.scheduledTimer(
+                            withTimeInterval: 5.0,
+                            repeats: true,
+                            block: {_ in self.reqStatusUpdate()}
+                        )
+                        // Hide scan bar
+                        isShowScanPad = false
+                    case .failure(let error):
+                        self.createAlert(message: error.localizedDescription)
+                    }
+                }
             )
         }
     }

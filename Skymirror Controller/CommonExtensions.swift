@@ -6,7 +6,25 @@
 //
 
 import Foundation
+import SwiftUI
 import CoreBluetooth
+
+// Extension to Binding<String?> to make it possible to be used as bool
+extension Binding where Value == String? {
+    func isShown() -> Binding<Bool> {
+        return Binding<Bool>(
+            get: {
+                if case .some = self.wrappedValue {
+                    return true
+                }
+                return false
+            },
+            set: {
+                self.wrappedValue = $0 ? "Unknown Error" : nil
+            }
+        )
+    }
+}
 
 // Extension to create Data from Hex
 extension String {

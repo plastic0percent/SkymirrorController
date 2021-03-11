@@ -41,13 +41,6 @@ struct ReadOperationView: View {
         self.bleAlert = message
     }
 
-    /// Used as closures to create alerts when functions fail
-    func okOrAlert(result: Result<Void, Error>) {
-        if case let .failure(error) = result {
-            createAlert(message: error.localizedDescription)
-        }
-    }
-
     var body: some View {
         VStack {
             // Title
@@ -107,6 +100,24 @@ struct WriteOperationView: View {
         }
     }
 
+    /// Commit text
+    private func textCommit() {
+        let data = self.isHex
+            ? inputValue.data(using: .hex)
+            : inputValue.data(using: .utf8)
+        if data == nil {
+            createAlert(message: "Malformed HEX data: \"\(inputValue)\"")
+        } else {
+            connection.write(
+                data: data!,
+                ofCharacWithUUID: characteristic.CBUUIDRepresentation.uuidString,
+                fromServiceWithUUID: characteristic.service.CBUUIDRepresentation.uuidString,
+                completion: okOrAlert
+            )
+            inputValue = ""
+        }
+    }
+
     var body: some View {
         VStack {
             // Title
@@ -120,20 +131,7 @@ struct WriteOperationView: View {
                     Text("As HEX Value")
                 }
                 Divider()
-                TextField("Value", text: $inputValue, onCommit: {
-                    let data = isHex ? inputValue.data(using: .hex) : inputValue.data(using: .utf8)
-                    if data == nil {
-                        createAlert(message: "Malformed HEX data: \"\(inputValue)\"")
-                    } else {
-                        connection.write(
-                            data: data!,
-                            ofCharacWithUUID: characteristic.CBUUIDRepresentation.uuidString,
-                            fromServiceWithUUID: characteristic.service.CBUUIDRepresentation.uuidString,
-                            completion: okOrAlert
-                        )
-                        inputValue = ""
-                    }
-                })
+                TextField("Value", text: $inputValue, onCommit: textCommit)
                 Spacer()
             }
         }
@@ -166,6 +164,26 @@ struct NotifyOperationView: View {
         okOrAlert(result: result)
     }
 
+    /// Action to toggle notification state
+    private func toggleNotifyAction() {
+        let characUUID = self.characteristic.CBUUIDRepresentation.uuidString
+        let serviceUUID = self.characteristic.service.CBUUIDRepresentation.uuidString
+        if registeredNotify {
+            self.connection.rmNotify(
+                ofCharacWithUUID: characUUID,
+                fromServiceWithUUID: serviceUUID,
+                completion: toggleRegistered
+            )
+        } else {
+            self.connection.addNotify(
+                ofCharacWithUUID: characUUID,
+                fromServiceWithUUID: serviceUUID,
+                completion: toggleRegistered,
+                onReceive: {_ in}
+            )
+        }
+    }
+
     /// Check whether notification is registered
     private func bodyOnAppear() {
         self.registeredNotify = connection.ifNotify(
@@ -181,24 +199,7 @@ struct NotifyOperationView: View {
                 Text("Notify").font(.subheadline)
             }
             HStack {
-                Button(action: {
-                    let characUUID = self.characteristic.CBUUIDRepresentation.uuidString
-                    let serviceUUID = self.characteristic.service.CBUUIDRepresentation.uuidString
-                    if registeredNotify {
-                        self.connection.rmNotify(
-                            ofCharacWithUUID: characUUID,
-                            fromServiceWithUUID: serviceUUID,
-                            completion: toggleRegistered
-                        )
-                    } else {
-                        self.connection.addNotify(
-                            ofCharacWithUUID: characUUID,
-                            fromServiceWithUUID: serviceUUID,
-                            completion: toggleRegistered,
-                            onReceive: {_ in}
-                        )
-                    }
-                }, label: {
+                Button(action: toggleNotifyAction, label: {
                     Text(self.registeredNotify
                             ? "Unregister notifications"
                             :"Register notifications"

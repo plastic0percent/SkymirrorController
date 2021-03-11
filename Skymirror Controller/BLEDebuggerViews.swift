@@ -120,6 +120,56 @@ struct BLEDebuggerDeviceView: View {
     @Binding var connection: ConnectionController
     @Binding var bleAlert: String?
 
+    // MARK: Device View
+
+    var titleTrailingItems: some View {
+        // Show log
+        NavigationLink(
+            "Log",
+            destination: ContentLoggerView(connection: $connection)
+        )
+    }
+
+    var body: some View {
+        ScrollView {
+            NavigationLink(destination: BLEDebuggerCharacView(
+                characteristic: $selectedCharac,
+                connection: $connection,
+                bleAlert: $bleAlert
+            ),
+            isActive: $isLinkActive) {
+                EmptyView()
+            }
+            LazyVStack {
+                // Show all found services
+                ForEach(Array(services.keys), id: \.self) {
+                    let service = services[$0]!.0
+                    let serviceName = service.CBUUIDRepresentation
+                    let serviceUUID = $0
+                    let characs = services[$0]!.1
+
+                    // Show service information
+                    HStack {
+                        Text("\(serviceName)" != serviceUUID
+                                ? "\(serviceName) [\(serviceUUID)]:"
+                                : "Service [\(serviceUUID)]:"
+                        )
+                        .font(.system(size: 13, weight: .ultraLight))
+                        .padding(.leading)
+                        Spacer()
+                    }
+                    Divider()
+                    characView(characs: characs)
+                }
+            }
+        }
+        .navigationBarTitle(Text("Peripheral"), displayMode: .inline)
+        .navigationBarItems(trailing: titleTrailingItems)
+        .onAppear(perform: deviceOnAppear)
+    }
+
+    // MARK: Methods start
+
     /// Create an alert with a Dismiss button
     func createAlert(message: String) {
         self.bleAlert = message
@@ -251,54 +301,6 @@ struct BLEDebuggerDeviceView: View {
             Divider()
             Spacer()
         }
-    }
-
-    // MARK: Device View
-
-    var titleTrailingItems: some View {
-        // Show log
-        NavigationLink(
-            "Log",
-            destination: ContentLoggerView(connection: $connection)
-        )
-    }
-
-    var body: some View {
-        ScrollView {
-            NavigationLink(destination: BLEDebuggerCharacView(
-                characteristic: $selectedCharac,
-                connection: $connection,
-                bleAlert: $bleAlert
-            ),
-            isActive: $isLinkActive) {
-                EmptyView()
-            }
-            LazyVStack {
-                // Show all found services
-                ForEach(Array(services.keys), id: \.self) {
-                    let service = services[$0]!.0
-                    let serviceName = service.CBUUIDRepresentation
-                    let serviceUUID = $0
-                    let characs = services[$0]!.1
-
-                    // Show service information
-                    HStack {
-                        Text("\(serviceName)" != serviceUUID
-                                ? "\(serviceName) [\(serviceUUID)]:"
-                                : "Service [\(serviceUUID)]:"
-                        )
-                        .font(.system(size: 13, weight: .ultraLight))
-                        .padding(.leading)
-                        Spacer()
-                    }
-                    Divider()
-                    characView(characs: characs)
-                }
-            }
-        }
-        .navigationBarTitle(Text("Peripheral"), displayMode: .inline)
-        .navigationBarItems(trailing: titleTrailingItems)
-        .onAppear(perform: deviceOnAppear)
     }
 }
 
