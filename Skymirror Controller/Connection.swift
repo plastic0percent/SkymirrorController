@@ -203,7 +203,7 @@ class ConnectionController {
         self.usingPeripheral = nil
     }
 
-    /// Add to some data to BLE ContentLogger refering to this Peripheral
+    /// Add to some data to BLE ContentLogger referring to this Peripheral
     func addToLog(data: Data) {
         self.automaticLog?.append(BLELogEntry(
             deviceUUID: usingPeripheral!.identifier,
