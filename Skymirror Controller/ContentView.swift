@@ -253,9 +253,6 @@ struct ContentView: View, UseAlert {
             }
             .navigationBarTitle(Text("Skymirror Controller"), displayMode: .inline)
             .navigationBarItems(trailing: titleTrailingItems)
-            .onAppear {
-                self.isDebuggerActive = false
-            }
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .alert(isPresented: $bleAlert.isShown()) { () -> Alert in

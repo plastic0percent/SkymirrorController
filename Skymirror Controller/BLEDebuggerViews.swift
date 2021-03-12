@@ -189,8 +189,6 @@ struct BLEDebuggerDeviceView: View, UseAlert {
 
     /// On appear actions of the device view
     private func deviceOnAppear() {
-        // First clear all flags
-        self.isLinkActive = false
         // Construct a list of all services and their characteristics
         connection.scanServices { result in
             switch result {
