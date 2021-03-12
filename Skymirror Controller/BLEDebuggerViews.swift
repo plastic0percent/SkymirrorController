@@ -72,7 +72,7 @@ struct BLEDebuggerMainView: View, UseAlert {
                         HStack {
                             VStack(alignment: .leading) {
                                 Text("Name: \(peripheral.name ?? "unknown")")
-                                    .font(.system(size: 17))
+                                    .font(.system(size: 18))
                                     .padding(.leading)
                                 Text("UUID: \(peripheral.identifier.uuidString)")
                                     .font(.system(size: 12, weight: .light))
@@ -80,7 +80,7 @@ struct BLEDebuggerMainView: View, UseAlert {
                             }
                             Spacer()
                             Text("RSSI: \(rssiString)")
-                                .font(.system(size: 11))
+                                .font(.system(size: 10))
                                 .padding(.trailing)
                         }
                     })
@@ -240,7 +240,7 @@ struct BLEDebuggerDeviceView: View, UseAlert {
                     HStack {
                         if "\(characName)" != characUUID {
                             Text("Name: \(characName)")
-                                .font(.system(size: 17))
+                                .font(.system(size: 18))
                         }
                         Spacer()
                     }
