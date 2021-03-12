@@ -30,16 +30,12 @@ struct BroadcastOperationView: View {
     }
 }
 
-struct ReadOperationView: View {
+struct ReadOperationView: View, UseAlert {
     @Binding var connection: ConnectionController
     @Binding var characteristic: CBCharacteristic
     @Binding var bleAlert: String?
     @State private var result = Data.init()
-
-    /// Create an alert with a Dismiss button
-    func createAlert(message: String) {
-        self.bleAlert = message
-    }
+    var bleAlertBinding: Binding<String?> { $bleAlert }
 
     var body: some View {
         VStack {
@@ -81,24 +77,13 @@ struct ReadOperationView: View {
     }
 }
 
-struct WriteOperationView: View {
+struct WriteOperationView: View, UseAlert {
     @State private var isHex = false
     @State private var inputValue = ""
     @Binding var connection: ConnectionController
     @Binding var characteristic: CBCharacteristic
     @Binding var bleAlert: String?
-
-    /// Create an alert with a Dismiss button
-    func createAlert(message: String) {
-        self.bleAlert = message
-    }
-
-    /// Used as closures to create alerts when functions fail
-    func okOrAlert(result: Result<Void, Error>) {
-        if case let .failure(error) = result {
-            createAlert(message: error.localizedDescription)
-        }
-    }
+    var bleAlertBinding: Binding<String?> { $bleAlert }
 
     /// Commit text
     private func textCommit() {
@@ -138,23 +123,12 @@ struct WriteOperationView: View {
     }
 }
 
-struct NotifyOperationView: View {
+struct NotifyOperationView: View, UseAlert {
     @Binding var connection: ConnectionController
     @Binding var characteristic: CBCharacteristic
     @Binding var bleAlert: String?
     @State private var registeredNotify: Bool = false
-
-    /// Create an alert with a Dismiss button
-    func createAlert(message: String) {
-        self.bleAlert = message
-    }
-
-    /// Used as closures to create alerts when functions fail
-    func okOrAlert(result: Result<Void, Error>) {
-        if case let .failure(error) = result {
-            createAlert(message: error.localizedDescription)
-        }
-    }
+    var bleAlertBinding: Binding<String?> { $bleAlert }
 
     /// Toggle the registered state
     private func toggleRegistered(result: Result<Void, Error>) {

@@ -9,24 +9,13 @@ import SwiftUI
 import SwiftyBluetooth
 import CoreBluetooth
 
-struct BLEDebuggerMainView: View {
+struct BLEDebuggerMainView: View, UseAlert {
     @State private var connection = ConnectionController(ifLog: true)
     @State private var foundDevices = [UUID: (Peripheral, Int?)]()
     // Whether the link to the next view is active
     @State private var isLinkActive = false
     @Binding var bleAlert: String?
-
-    /// Create an alert with a Dismiss button
-    func createAlert(message: String) {
-        self.bleAlert = message
-    }
-
-    /// Used as closures to create alerts when functions fail
-    func okOrAlert(result: Result<Void, Error>) {
-        if case let .failure(error) = result {
-            createAlert(message: error.localizedDescription)
-        }
-    }
+    var bleAlertBinding: Binding<String?> { $bleAlert }
 
     // MARK: Debugger Main View
 
@@ -107,7 +96,7 @@ struct BLEDebuggerMainView: View {
     }
 }
 
-struct BLEDebuggerDeviceView: View {
+struct BLEDebuggerDeviceView: View, UseAlert {
     // Discovered services, use dictionary to avoid duplicates
     @State private var services = [String: (CBService, [CBCharacteristic])]()
     // Whether the link to the next view is active
@@ -119,6 +108,7 @@ struct BLEDebuggerDeviceView: View {
     @State var firstEntry = true
     @Binding var connection: ConnectionController
     @Binding var bleAlert: String?
+    var bleAlertBinding: Binding<String?> { $bleAlert }
 
     // MARK: Device View
 
@@ -169,18 +159,6 @@ struct BLEDebuggerDeviceView: View {
     }
 
     // MARK: Methods start
-
-    /// Create an alert with a Dismiss button
-    func createAlert(message: String) {
-        self.bleAlert = message
-    }
-
-    /// Used as closures to create alerts when functions fail
-    func okOrAlert(result: Result<Void, Error>) {
-        if case let .failure(error) = result {
-            createAlert(message: error.localizedDescription)
-        }
-    }
 
     /// Post-connect actions
     private func postConnectActions(

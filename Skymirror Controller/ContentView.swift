@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftyBluetooth
 import CoreBluetooth
 
-struct ContentView: View {
+struct ContentView: View, UseAlert {
     // Whether the fish repeller beeper is on
     @State private var fishRepellerOn = false
     // Whether frequency is being edited
@@ -25,7 +25,8 @@ struct ContentView: View {
     // Current-set turing position
     @State private var turningVal = 15.0
     // Whether an Alert relating to BLE is shown and its content
-    @State private var bleAlert: String?
+    @State internal var bleAlert: String?
+    var bleAlertBinding: Binding<String?> { $bleAlert }
     // Whether the Scan pad is shown
     @State private var isShowScanPad = true
     // Whether the link to debugger is activated
@@ -267,27 +268,6 @@ struct ContentView: View {
     }
 
     // MARK: Methods start here
-
-    /// Create an alert with a Dismiss button
-    private func createAlert(message: String) {
-        self.bleAlert = message
-    }
-
-    /// Used as closures to create alerts when functions fail
-    private func okOrAlert(result: Result<Void, Error>) {
-        if case let .failure(error) = result {
-            self.createAlert(message: error.localizedDescription)
-        }
-    }
-
-    /// Convert functions with a completion callback to simple functions which alerts on failure
-    public func wrapperAlertCb(
-        origFunc: @escaping (_ completion: @escaping ConnectionCallback) -> Void) -> (() -> Void
-        ) {
-        return {
-            origFunc(self.okOrAlert)
-        }
-    }
 
     /// Request status from Skymirror and update state
     private func reqStatusUpdate() {

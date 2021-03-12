@@ -133,3 +133,37 @@ extension CBCharacteristicProperties {
         return result
     }
 }
+
+/// Common protocol for views that use the global alert
+protocol UseAlert {
+    var bleAlertBinding: Binding<String?> { get }
+    var bleAlert: String? { get set }
+
+    func createAlert(message: String)
+    func okOrAlert(result: Result<Void, Error>)
+}
+
+/// Common methods to operate the global alert
+extension UseAlert {
+    // Require this line: var bleAlertBinding: Binding<String?> { $bleAlert }
+    /// Create an alert with a Dismiss button
+    func createAlert(message: String) {
+        self.bleAlertBinding.wrappedValue = message
+    }
+
+    /// Used as closures to create alerts when functions fail
+    func okOrAlert(result: Result<Void, Error>) {
+        if case let .failure(error) = result {
+            createAlert(message: error.localizedDescription)
+        }
+    }
+
+    /// Convert functions with a completion callback to simple functions which alerts on failure
+    func wrapperAlertCb(
+        origFunc: @escaping (_ completion: @escaping ConnectionCallback) -> Void) -> (() -> Void
+        ) {
+        return {
+            origFunc(self.okOrAlert)
+        }
+    }
+}
