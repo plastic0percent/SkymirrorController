@@ -35,7 +35,7 @@ struct ContentLoggerView: View {
         .frame(height: 100)
         // Scroll view of all logs
         ScrollView {
-            ForEach(logs, id: \.identifier) {
+            ForEach(logs) {
                 let item = $0
                 HStack {
                     Text("[\(item.deviceUUID):\(item.characUUID)]")

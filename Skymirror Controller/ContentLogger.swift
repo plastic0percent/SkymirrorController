@@ -7,15 +7,16 @@
 
 import Foundation
 
-struct BLELogEntry {
-    var identifier: UUID
+struct BLELogEntry: Identifiable {
+    // swiftlint:disable identifier_name
+    var id: UUID
     var deviceUUID: String
     var characUUID: String
     var content: Data
 
     /// Initializer with a generated id
     init(deviceUUID: String, characUUID: String, content: Data) {
-        self.identifier = UUID()
+        self.id = UUID()
         self.deviceUUID = deviceUUID
         self.characUUID = characUUID
         self.content = content
