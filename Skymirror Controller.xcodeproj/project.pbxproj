@@ -18,6 +18,13 @@
 		F88AA41025F2296B0048F68C /* SwiftyBluetooth in Frameworks */ = {isa = PBXBuildFile; productRef = F88AA40F25F2296B0048F68C /* SwiftyBluetooth */; };
 		F88AA42625F31D300048F68C /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88AA42525F31D300048F68C /* Connection.swift */; };
 		F88AA42A25F31F120048F68C /* SkymirrorAspects.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88AA42925F31F120048F68C /* SkymirrorAspects.swift */; };
+		F893CF2925FBBA2900B90EE6 /* ReadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F893CF2825FBBA2900B90EE6 /* ReadView.swift */; };
+		F893CF2C25FBBA9E00B90EE6 /* BroadcastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F893CF2B25FBBA9E00B90EE6 /* BroadcastView.swift */; };
+		F893CF2F25FBBAF800B90EE6 /* WriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F893CF2E25FBBAF800B90EE6 /* WriteView.swift */; };
+		F893CF3225FBBB2800B90EE6 /* NotifyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F893CF3125FBBB2800B90EE6 /* NotifyView.swift */; };
+		F893CF3525FBBB7C00B90EE6 /* IndicateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F893CF3425FBBB7C00B90EE6 /* IndicateView.swift */; };
+		F893CF3825FBBBA400B90EE6 /* SignedWriteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F893CF3725FBBBA400B90EE6 /* SignedWriteView.swift */; };
+		F893CF3B25FBBBBF00B90EE6 /* ExtendedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F893CF3A25FBBBBF00B90EE6 /* ExtendedView.swift */; };
 		F89BC97E25F446BE00D61E27 /* BLEDebuggerViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89BC97D25F446BE00D61E27 /* BLEDebuggerViews.swift */; };
 		F89BC98725F4D40200D61E27 /* BLEDebuggerOperations.swift in Sources */ = {isa = PBXBuildFile; fileRef = F89BC98625F4D40100D61E27 /* BLEDebuggerOperations.swift */; };
 /* End PBXBuildFile section */
@@ -36,6 +43,13 @@
 		F88AA40325F1F2190048F68C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F88AA42525F31D300048F68C /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		F88AA42925F31F120048F68C /* SkymirrorAspects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkymirrorAspects.swift; sourceTree = "<group>"; };
+		F893CF2825FBBA2900B90EE6 /* ReadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadView.swift; sourceTree = "<group>"; };
+		F893CF2B25FBBA9E00B90EE6 /* BroadcastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastView.swift; sourceTree = "<group>"; };
+		F893CF2E25FBBAF800B90EE6 /* WriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WriteView.swift; sourceTree = "<group>"; };
+		F893CF3125FBBB2800B90EE6 /* NotifyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotifyView.swift; sourceTree = "<group>"; };
+		F893CF3425FBBB7C00B90EE6 /* IndicateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicateView.swift; sourceTree = "<group>"; };
+		F893CF3725FBBBA400B90EE6 /* SignedWriteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignedWriteView.swift; sourceTree = "<group>"; };
+		F893CF3A25FBBBBF00B90EE6 /* ExtendedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtendedView.swift; sourceTree = "<group>"; };
 		F89BC97D25F446BE00D61E27 /* BLEDebuggerViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEDebuggerViews.swift; sourceTree = "<group>"; };
 		F89BC98625F4D40100D61E27 /* BLEDebuggerOperations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEDebuggerOperations.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -71,6 +85,7 @@
 		F88AA3F425F1F2170048F68C /* Skymirror Controller */ = {
 			isa = PBXGroup;
 			children = (
+				F893CF2725FBB9DD00B90EE6 /* BLEDebuggerOperations */,
 				F8296E3E25F85FD000AA0FA8 /* Skymirror Controller.entitlements */,
 				F88AA3F525F1F2170048F68C /* AppDelegate.swift */,
 				F88AA3F725F1F2170048F68C /* SceneDelegate.swift */,
@@ -95,6 +110,20 @@
 				F88AA3FE25F1F2190048F68C /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		F893CF2725FBB9DD00B90EE6 /* BLEDebuggerOperations */ = {
+			isa = PBXGroup;
+			children = (
+				F893CF2825FBBA2900B90EE6 /* ReadView.swift */,
+				F893CF2B25FBBA9E00B90EE6 /* BroadcastView.swift */,
+				F893CF2E25FBBAF800B90EE6 /* WriteView.swift */,
+				F893CF3125FBBB2800B90EE6 /* NotifyView.swift */,
+				F893CF3425FBBB7C00B90EE6 /* IndicateView.swift */,
+				F893CF3725FBBBA400B90EE6 /* SignedWriteView.swift */,
+				F893CF3A25FBBBBF00B90EE6 /* ExtendedView.swift */,
+			);
+			path = BLEDebuggerOperations;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -172,16 +201,23 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F893CF3825FBBBA400B90EE6 /* SignedWriteView.swift in Sources */,
+				F893CF2C25FBBA9E00B90EE6 /* BroadcastView.swift in Sources */,
 				F84A8AC825FA5310002BAC17 /* CommonExtensions.swift in Sources */,
 				F88AA3F625F1F2170048F68C /* AppDelegate.swift in Sources */,
+				F893CF3525FBBB7C00B90EE6 /* IndicateView.swift in Sources */,
 				F88AA3F825F1F2170048F68C /* SceneDelegate.swift in Sources */,
 				F819A4C525F5C1A10093A48E /* ContentLogger.swift in Sources */,
 				F88AA3FA25F1F2170048F68C /* ContentView.swift in Sources */,
+				F893CF2925FBBA2900B90EE6 /* ReadView.swift in Sources */,
 				F89BC97E25F446BE00D61E27 /* BLEDebuggerViews.swift in Sources */,
 				F88AA42625F31D300048F68C /* Connection.swift in Sources */,
+				F893CF3B25FBBBBF00B90EE6 /* ExtendedView.swift in Sources */,
 				F89BC98725F4D40200D61E27 /* BLEDebuggerOperations.swift in Sources */,
+				F893CF2F25FBBAF800B90EE6 /* WriteView.swift in Sources */,
 				F88AA42A25F31F120048F68C /* SkymirrorAspects.swift in Sources */,
 				F819A4C925F605DD0093A48E /* ContentLoggerView.swift in Sources */,
+				F893CF3225FBBB2800B90EE6 /* NotifyView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
