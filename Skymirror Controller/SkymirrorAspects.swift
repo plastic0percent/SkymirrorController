@@ -123,7 +123,16 @@ class SkymirrorController {
 
     /// Disconnect the underlying BLE device
     func disconnect(completion: @escaping ConnectionCallback) {
-        self.connection.disconnect(completion: completion)
+        self.connection.rmNotify(
+            ofCharacWithUUID: "FFE1",
+            fromServiceWithUUID: "FFE0",
+            completion: {result in
+                if case .failure = result {
+                    completion(result)
+                } else {
+                    self.connection.disconnect(completion: completion)
+                }
+            })
     }
 
     /// Write data to the FFE2 characteristc

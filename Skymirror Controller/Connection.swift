@@ -172,7 +172,7 @@ class ConnectionController {
                   completion: @escaping ConnectionCallback
     ) {
         if self.usingPeripheral == nil {
-            return completion(.failure(ConnectionError.noDeviceError))
+            return completion(.success(()))
         }
         NotificationCenter.default.removeObserver(
             self, // Not really sure if this is the correct way to call this

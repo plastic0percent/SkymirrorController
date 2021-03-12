@@ -37,6 +37,7 @@ struct ContentView: View, UseAlert {
     // Status of Skymirror
     @State private var statusList: [(String, String)] = []
     @State private var skymirrorController = SkymirrorController()
+    @State private var reqInfoTimer: Timer?
 
     // MARK: View starts here
 
@@ -198,6 +199,7 @@ struct ContentView: View, UseAlert {
                         // Go to BLE debugger, this is wrapped with a button to ensure
                         // peripherals are getting disconnected
                         Button(action: {
+                            self.reqInfoTimer?.invalidate()
                             self.skymirrorController.disconnect(completion: okOrAlert)
                             self.isDebuggerActive = true
                         }, label: {
@@ -303,7 +305,7 @@ struct ContentView: View, UseAlert {
                     switch result {
                     case .success:
                         // Update the information every 5 seconds
-                        Timer.scheduledTimer(
+                        self.reqInfoTimer = Timer.scheduledTimer(
                             withTimeInterval: 5.0,
                             repeats: true,
                             block: {_ in self.reqStatusUpdate()}
