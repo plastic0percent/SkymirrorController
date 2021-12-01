@@ -27,7 +27,7 @@ struct ReadOperationView: View, UseAlert {
                 Button(action: {
                     connection.read(
                         ofCharacWithUUID: characteristic.CBUUIDRepresentation.uuidString,
-                        fromServiceWithUUID: characteristic.service.CBUUIDRepresentation.uuidString,
+                        fromServiceWithUUID: characteristic.service!.CBUUIDRepresentation.uuidString,
                         completion: {res in
                             switch res {
                             case .success(let data):

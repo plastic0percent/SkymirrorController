@@ -27,7 +27,7 @@ struct UnifiedWriteOperationView: View, UseAlert {
             connection.write(
                 data: data!,
                 ofCharacWithUUID: characteristic.CBUUIDRepresentation.uuidString,
-                fromServiceWithUUID: characteristic.service.CBUUIDRepresentation.uuidString,
+                fromServiceWithUUID: characteristic.service!.CBUUIDRepresentation.uuidString,
                 completion: okOrAlert
             )
             inputValue = ""

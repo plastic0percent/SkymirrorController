@@ -26,7 +26,7 @@ struct NotifyOperationView: View, UseAlert {
     /// Action to toggle notification state
     private func toggleNotifyAction() {
         let characUUID = self.characteristic.CBUUIDRepresentation.uuidString
-        let serviceUUID = self.characteristic.service.CBUUIDRepresentation.uuidString
+        let serviceUUID = self.characteristic.service!.CBUUIDRepresentation.uuidString
         if registeredNotify {
             self.connection.rmNotify(
                 ofCharacWithUUID: characUUID,
@@ -47,7 +47,7 @@ struct NotifyOperationView: View, UseAlert {
     private func bodyOnAppear() {
         self.registeredNotify = connection.ifNotify(
             ofCharacWithUUID: self.characteristic.CBUUIDRepresentation.uuidString,
-            fromServiceWithUUID: self.characteristic.service.CBUUIDRepresentation.uuidString
+            fromServiceWithUUID: self.characteristic.service!.CBUUIDRepresentation.uuidString
         )
     }
 

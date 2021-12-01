@@ -170,7 +170,7 @@ struct BLEDebuggerDeviceView: View, UseAlert {
                 case .notify:
                     // Register notifications so that they appear in logs
                     let characUUID = characteristc.CBUUIDRepresentation.uuidString
-                    let serviceUUID = characteristc.service.CBUUIDRepresentation.uuidString
+                    let serviceUUID = characteristc.service!.CBUUIDRepresentation.uuidString
                     if self.connection.ifNotify(
                         ofCharacWithUUID: characUUID,
                         fromServiceWithUUID: serviceUUID
